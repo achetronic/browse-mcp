@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"browse-mcp/internal/web"
 
@@ -94,7 +95,9 @@ func (tm *ToolsManager) HandleToolWebFetch(ctx context.Context, request mcp.Call
 	return mcp.NewToolResultText(result.Content), nil
 }
 
-// HandleToolWebDownload handles the web_download tool
+// HandleToolWebDownload handles the web_download tool.
+// If web.download_dir is configured, all file paths are resolved relative to it
+// and any path traversal attempt (e.g. ../../etc/passwd) is rejected.
 func (tm *ToolsManager) HandleToolWebDownload(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	args := getArgs(request)
 	rawURL := getString(args, "url", "")
@@ -109,6 +112,18 @@ func (tm *ToolsManager) HandleToolWebDownload(ctx context.Context, request mcp.C
 
 	if !strings.HasPrefix(rawURL, "http://") && !strings.HasPrefix(rawURL, "https://") {
 		return mcp.NewToolResultError("url must start with http:// or https://"), nil
+	}
+
+	// If download_dir is configured, resolve file_path relative to it
+	// and reject any path that escapes the directory.
+	if tm.dependencies.DownloadDir != "" {
+		resolvedPath := filepath.Join(tm.dependencies.DownloadDir, filePath)
+		cleanBase := filepath.Clean(tm.dependencies.DownloadDir)
+		cleanPath := filepath.Clean(resolvedPath)
+		if !strings.HasPrefix(cleanPath, cleanBase+string(filepath.Separator)) && cleanPath != cleanBase {
+			return mcp.NewToolResultError(fmt.Sprintf("file_path must be inside %s", tm.dependencies.DownloadDir)), nil
+		}
+		filePath = cleanPath
 	}
 
 	written, err := web.Download(ctx, tm.dependencies.HTTPClient, rawURL, filePath)

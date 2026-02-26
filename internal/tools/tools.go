@@ -30,6 +30,7 @@ type ToolsManagerDependencies struct {
 	HTTPClient      *http.Client
 	Middlewares     []middlewares.ToolMiddleware
 	DefaultProvider string
+	DownloadDir     string
 	TavilyAPIKey    string
 	SerperAPIKey    string
 }

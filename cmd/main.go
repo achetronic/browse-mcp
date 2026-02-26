@@ -99,6 +99,7 @@ func main() {
 		HTTPClient:      httpClient,
 		Middlewares:     toolMiddlewares,
 		DefaultProvider: defaultProvider,
+		DownloadDir:     appCtx.Config.Web.DownloadDir,
 		TavilyAPIKey:    appCtx.Config.Web.Providers.Tavily.APIKey,
 		SerperAPIKey:    appCtx.Config.Web.Providers.Serper.APIKey,
 	})

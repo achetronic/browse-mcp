@@ -131,6 +131,10 @@ type WebConfig struct {
 	// DefaultProvider sets which provider is used when none is specified in the request.
 	// Options: duckduckgo (no key), tavily, serper.
 	DefaultProvider string          `yaml:"default_provider,omitempty"`
+	// DownloadDir restricts web_download to a specific directory.
+	// All file_path values will be resolved relative to this directory.
+	// If empty, any absolute path is accepted.
+	DownloadDir     string          `yaml:"download_dir,omitempty"`
 	Providers       ProvidersConfig `yaml:"providers,omitempty"`
 }
 
