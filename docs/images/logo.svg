@@ -6,9 +6,9 @@
   <!-- Main frame -->
   <rect x="0" y="0" width="116" height="116" rx="10" fill="#f8fafc"/>
 
-  <!-- Tab bar -->
+  <!-- Tab bar — rounded top only -->
   <rect x="0" y="0" width="116" height="22" rx="10" fill="#94a3b8"/>
-  <rect x="0" y="16" width="116" height="6" fill="#94a3b8"/>
+  <rect x="0" y="10" width="116" height="12" fill="#94a3b8"/>
 
   <!-- Active tab -->
   <path d="M6 22 L6 8 Q6 4 10 4 L58 4 Q62 4 62 8 L62 22 Z" fill="#f8fafc"/>
