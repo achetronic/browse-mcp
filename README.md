@@ -46,6 +46,7 @@ server:
 
 web:
   default_provider: "duckduckgo"
+  download_dir: "/data"  # optional — restricts web_download to this directory
 ```
 
 **HTTP** — exposes the server over the network. Required for multi-user setups, production deployments, or when you need JWT auth and URL policies.
@@ -197,6 +198,20 @@ policies:
 ```
 
 `web_search` is not URL-restricted by design — results are snippets, no content is fetched. Restriction applies at fetch/download time.
+
+---
+
+## ⚠️ Limitations
+
+**Fetch size** — The fetcher reads up to 5MB per request. Pages larger than 50KB are saved to a temp file instead of returned inline.
+
+**JavaScript** — The fetcher doesn't run JS. Pages that render entirely client-side will return little or no content.
+
+**DuckDuckGo** — Works without a key but may rate-limit under heavy use. Switch to Tavily for production.
+
+**Protocols** — Only HTTP and HTTPS are supported.
+
+**Download directory** — By default `web_download` accepts any path. Set `web.download_dir` to restrict downloads to a specific directory. Path traversal attempts are rejected.
 
 ---
 

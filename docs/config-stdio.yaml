@@ -6,6 +6,7 @@ server:
 
 web:
   default_provider: "duckduckgo"
+  download_dir: "/data"  # optional — restricts web_download to this directory
   providers:
     tavily:
       api_key: "$TAVILY_API_KEY"
