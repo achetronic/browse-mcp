@@ -19,7 +19,7 @@
     <rect x="0" y="16" width="120" height="6" fill="#dee1e6"/>
 
     <!-- Active tab — rounded top only, flush with toolbar -->
-    <path d="M6 22 L6 8 Q6 4 10 4 L58 4 Q62 4 62 8 L62 22 Z" fill="white"/>
+    <path d="M6 22 L6 8 Q6 4 10 4 L58 4 Q62 4 62 8 L62 22 Z" fill="#f1f5f9"/>
     <!-- Favicon dot in tab -->
     <circle cx="15" cy="13" r="4" fill="#2563eb" opacity="0.7"/>
     <!-- Tab title line -->
