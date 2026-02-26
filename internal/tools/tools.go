@@ -91,17 +91,21 @@ Max response size: 5MB. Only HTTP and HTTPS are supported.`),
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolWebFetch))
 
 	// web_download
+	webDownloadDesc := "Download a file from a URL and save it to disk.\nUse this for binary files, PDFs, images, or any file you want to save locally.\nReturns the number of bytes written and the final file path."
+	webDownloadFilePathDesc := "Local path where the file should be saved (e.g. /tmp/file.pdf)"
+	if tm.dependencies.DownloadDir != "" {
+		webDownloadDesc += "\nIMPORTANT: All files must be saved inside " + tm.dependencies.DownloadDir + ". Any path outside this directory will be rejected."
+		webDownloadFilePathDesc = "Path where the file should be saved, relative to " + tm.dependencies.DownloadDir + " (e.g. file.pdf). Absolute paths and traversal (../) are not allowed."
+	}
 	tool = mcp.NewTool("web_download",
-		mcp.WithDescription(`Download a file from a URL and save it to disk.
-Use this for binary files, PDFs, images, or any file you want to save locally.
-Returns the number of bytes written and the final file path.`),
+		mcp.WithDescription(webDownloadDesc),
 		mcp.WithString("url",
 			mcp.Required(),
 			mcp.Description("The URL to download from (must start with http:// or https://)"),
 		),
 		mcp.WithString("file_path",
 			mcp.Required(),
-			mcp.Description("Local path where the file should be saved (e.g. /tmp/file.pdf)"),
+			mcp.Description(webDownloadFilePathDesc),
 		),
 		mcp.WithNumber("timeout",
 			mcp.Description("Request timeout in seconds (default: 120, max: 600)"),
