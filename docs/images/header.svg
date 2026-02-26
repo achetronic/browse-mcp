@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 140">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#f8faff;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#eef4ff;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f0f4ff;stop-opacity:1" />
     </linearGradient>
   </defs>
 
   <rect width="800" height="140" rx="12" fill="url(#bg)"/>
 
   <!-- Browser window icon — Chrome style -->
-  <g transform="translate(14, 10)">
+  <g transform="translate(40, 10)">
 
     <!-- Main window frame -->
     <rect x="0" y="0" width="120" height="120" rx="6" fill="white" stroke="#e2e8f0" stroke-width="2"/>
@@ -21,7 +21,7 @@
     <!-- Active tab — rounded top only, flush with toolbar -->
     <path d="M6 22 L6 8 Q6 4 10 4 L58 4 Q62 4 62 8 L62 22 Z" fill="#f1f5f9"/>
     <!-- Favicon dot in tab -->
-    <circle cx="15" cy="13" r="4" fill="#2563eb" opacity="0.7"/>
+    <circle cx="15" cy="13" r="4" fill="#6366f1" opacity="0.7"/>
     <!-- Tab title line -->
     <rect x="23" y="10" width="28" height="5" rx="2" fill="#94a3b8"/>
 
@@ -42,7 +42,7 @@
     <rect x="56" y="30" width="44" height="3" rx="1.5" fill="#94a3b8" opacity="0.5"/>
 
     <!-- Page content area -->
-    <rect x="8" y="50" width="104" height="6" rx="3" fill="#2563eb" opacity="0.7"/>
+    <rect x="8" y="50" width="104" height="6" rx="3" fill="#6366f1" opacity="0.6"/>
     <rect x="8" y="62" width="80" height="4" rx="2" fill="#e2e8f0"/>
     <rect x="8" y="71" width="96" height="4" rx="2" fill="#e2e8f0"/>
     <rect x="8" y="80" width="64" height="4" rx="2" fill="#e2e8f0"/>
@@ -50,11 +50,11 @@
   </g>
 
   <!-- Title -->
-  <text x="152" y="60" font-family="'Segoe UI', system-ui, sans-serif" font-size="42" font-weight="600" letter-spacing="1">
-    <tspan fill="#111827">Browse</tspan><tspan fill="#2563eb" dx="10"> MCP</tspan>
+  <text x="186" y="60" font-family="'Segoe UI', system-ui, sans-serif" font-size="42" font-weight="600" letter-spacing="1">
+    <tspan fill="#1e293b">Browse</tspan><tspan fill="#6366f1" dx="10">MCP</tspan>
   </text>
 
   <!-- Tagline -->
-  <text x="154" y="92" font-family="'Segoe UI', system-ui, sans-serif" font-size="15" fill="#6b7280" letter-spacing="0.1">Search, fetch and download from the web. Right from your AI.</text>
+  <text x="188" y="92" font-family="'Segoe UI', system-ui, sans-serif" font-size="15" fill="#64748b" letter-spacing="0.1">Search, fetch and download from the web. Right from your AI.</text>
 
 </svg>
