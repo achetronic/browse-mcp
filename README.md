@@ -225,7 +225,9 @@ policies:
 
 ## 🤝 Contributing
 
-For AI agents working on this codebase, see [AGENTS.md](.agents/AGENTS.md).
+**Humans** — Issues, PRs and love are welcome.
+
+**AI agents** — Read [AGENTS.md](.agents/AGENTS.md) before touching anything.
 
 ---
 
