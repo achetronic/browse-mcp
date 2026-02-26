@@ -48,11 +48,11 @@
   <rect x="662" y="470" width="190" height="36" rx="18" fill="#22d3ee" opacity="0.12"/>
   <text x="757" y="494" font-family="'Segoe UI', system-ui, sans-serif" font-size="16" fill="#22d3ee" text-anchor="middle" font-weight="600">stdio + http</text>
 
-  <rect x="806" y="470" width="175" height="36" rx="18" fill="#22d3ee" opacity="0.12"/>
-  <text x="893" y="494" font-family="'Segoe UI', system-ui, sans-serif" font-size="16" fill="#22d3ee" text-anchor="middle" font-weight="600">No API key</text>
+  <rect x="872" y="470" width="160" height="36" rx="18" fill="#22d3ee" opacity="0.12"/>
+  <text x="952" y="494" font-family="'Segoe UI', system-ui, sans-serif" font-size="16" fill="#22d3ee" text-anchor="middle" font-weight="600">No API key</text>
 
-  <rect x="995" y="470" width="160" height="36" rx="18" fill="#22d3ee" opacity="0.12"/>
-  <text x="1075" y="494" font-family="'Segoe UI', system-ui, sans-serif" font-size="16" fill="#22d3ee" text-anchor="middle" font-weight="600">JWT + RBAC</text>
+  <rect x="1052" y="470" width="160" height="36" rx="18" fill="#22d3ee" opacity="0.12"/>
+  <text x="1132" y="494" font-family="'Segoe UI', system-ui, sans-serif" font-size="16" fill="#22d3ee" text-anchor="middle" font-weight="600">JWT + RBAC</text>
 
   <circle cx="1220" cy="80" r="120" fill="#22d3ee" opacity="0.03"/>
   <circle cx="1260" cy="580" r="80" fill="#22d3ee" opacity="0.04"/>
