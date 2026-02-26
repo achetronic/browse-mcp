@@ -4,7 +4,7 @@ This document helps AI agents work effectively in this repository.
 
 ## Project Overview
 
-**Web MCP** is a Model Context Protocol server that gives AI assistants access to the internet. Search, fetch page content, and download files — all from a single MCP server. Built in Go, no API key required for basic usage.
+**Browse MCP** is a Model Context Protocol server that gives AI assistants access to the internet. Search, fetch page content, and download files — all from a single MCP server. Built in Go, no API key required for basic usage.
 
 ## Key Technologies
 

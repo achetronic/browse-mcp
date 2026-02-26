@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/header.svg" alt="Web MCP" width="800"/>
+  <img src="docs/images/header.svg" alt="Browse MCP" width="800"/>
 </p>
 
 <p align="center">
@@ -34,7 +34,7 @@ Create a `config.yaml`:
 
 ```yaml
 server:
-  name: "web-mcp"
+  name: "browse-mcp"
   version: "0.1.0"
   transport:
     type: "stdio"
@@ -62,7 +62,7 @@ See `docs/config-stdio.yaml` and `docs/config-http.yaml` for full examples.
 ```bash
 go mod tidy
 make build
-./bin/web-mcp -config config.yaml
+./bin/browse-mcp -config config.yaml
 ```
 
 ---
@@ -113,8 +113,8 @@ For pages larger than 50KB the content is saved to a temp file and the path is r
 ## 🐳 Docker
 
 ```bash
-docker build -t web-mcp .
-docker run -v $(pwd)/config.yaml:/config/config.yaml web-mcp
+docker build -t browse-mcp .
+docker run -v $(pwd)/config.yaml:/config/config.yaml browse-mcp
 ```
 
 ---

@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"web-mcp/internal/web"
+	"browse-mcp/internal/web"
 
 	"github.com/mark3labs/mcp-go/mcp"
 )

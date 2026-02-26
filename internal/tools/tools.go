@@ -16,7 +16,7 @@ package tools
 
 import (
 	"net/http"
-	"web-mcp/internal/globals"
+	"browse-mcp/internal/globals"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"

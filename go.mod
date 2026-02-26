@@ -1,4 +1,4 @@
-module web-mcp
+module browse-mcp
 
 go 1.24.0
 

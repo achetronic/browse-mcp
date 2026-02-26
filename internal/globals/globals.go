@@ -19,8 +19,8 @@ import (
 	"flag"
 	"log/slog"
 	"os"
-	"web-mcp/api"
-	"web-mcp/internal/config"
+	"browse-mcp/api"
+	"browse-mcp/internal/config"
 )
 
 // ApplicationContext holds the application-wide context

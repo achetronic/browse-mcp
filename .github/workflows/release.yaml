@@ -72,14 +72,14 @@ jobs:
         run: |
           mkdir -p bin
           go build -ldflags="-w -s -X main.Version=${{ steps.version.outputs.VERSION }}" \
-            -o bin/web-mcp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} \
+            -o bin/browse-mcp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }} \
             ./cmd/main.go
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: web-mcp-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: bin/web-mcp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
+          name: browse-mcp-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: bin/browse-mcp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.ext }}
 
   build-docker:
     name: Build Docker Images
@@ -155,7 +155,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-          pattern: web-mcp-*
+          pattern: browse-mcp-*
           merge-multiple: true
 
       - name: Prepare release files

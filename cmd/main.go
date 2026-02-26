@@ -19,9 +19,9 @@ import (
 	"net/http"
 	"time"
 
-	"web-mcp/internal/globals"
-	"web-mcp/internal/tools"
-	"web-mcp/internal/web"
+	"browse-mcp/internal/globals"
+	"browse-mcp/internal/tools"
+	"browse-mcp/internal/web"
 
 	"github.com/mark3labs/mcp-go/server"
 )

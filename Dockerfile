@@ -10,7 +10,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o web-mcp ./cmd/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o browse-mcp ./cmd/main.go
 
 # Runtime stage
 FROM alpine:3.19
@@ -19,10 +19,10 @@ RUN apk add --no-cache ca-certificates tzdata
 
 WORKDIR /app
 
-COPY --from=builder /app/web-mcp .
+COPY --from=builder /app/browse-mcp .
 
 RUN adduser -D -g '' appuser
 USER appuser
 
-ENTRYPOINT ["./web-mcp"]
+ENTRYPOINT ["./browse-mcp"]
 CMD ["-config", "/config/config.yaml"]

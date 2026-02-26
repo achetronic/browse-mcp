@@ -16,7 +16,7 @@ package config
 
 import (
 	"os"
-	"web-mcp/api"
+	"browse-mcp/api"
 
 	"gopkg.in/yaml.v3"
 )

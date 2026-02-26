@@ -1,6 +1,6 @@
 .PHONY: build run clean tidy test fmt vet help
 
-BINARY_NAME=web-mcp
+BINARY_NAME=browse-mcp
 BUILD_DIR=bin
 VERSION?=$(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 LDFLAGS=-ldflags="-w -s -X main.Version=$(VERSION)"
