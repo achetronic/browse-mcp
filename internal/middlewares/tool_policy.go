@@ -28,16 +28,22 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
-// CompiledToolPolicy holds a precompiled CEL program and its allowed tools
+// CompiledToolPolicy holds a precompiled CEL program and the list of tools it allows.
+// The program is evaluated against the JWT payload on every tool call.
 type CompiledToolPolicy struct {
 	Program      cel.Program
 	AllowedTools []string
 }
 
+// ToolPolicyMiddlewareDependencies holds the dependencies for the tool policy middleware.
 type ToolPolicyMiddlewareDependencies struct {
 	AppCtx *globals.ApplicationContext
 }
 
+// ToolPolicyMiddleware enforces which MCP tools a user can call based on their JWT claims.
+// Policies are CEL expressions evaluated against the JWT payload.
+// The first matching policy wins. If no policy matches, the request is denied.
+// The JWT payload is extracted from the request context (set by JWTValidationMiddleware).
 type ToolPolicyMiddleware struct {
 	dependencies     ToolPolicyMiddlewareDependencies
 	compiledPolicies []CompiledToolPolicy

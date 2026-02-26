@@ -20,14 +20,19 @@ import (
 	"browse-mcp/internal/globals"
 )
 
+// AccessLogsMiddlewareDependencies holds the dependencies for the access logs middleware.
 type AccessLogsMiddlewareDependencies struct {
 	AppCtx *globals.ApplicationContext
 }
 
+// AccessLogsMiddleware logs every HTTP request with method, URL, remote address,
+// user agent, request duration and headers. Headers listed in RedactedHeaders are
+// truncated; headers in ExcludedHeaders are removed entirely.
 type AccessLogsMiddleware struct {
 	dependencies AccessLogsMiddlewareDependencies
 }
 
+// NewAccessLogsMiddleware creates a new AccessLogsMiddleware.
 func NewAccessLogsMiddleware(dependencies AccessLogsMiddlewareDependencies) *AccessLogsMiddleware {
 	return &AccessLogsMiddleware{
 		dependencies: dependencies,

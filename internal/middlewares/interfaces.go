@@ -20,10 +20,12 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
+// ToolMiddleware is implemented by any middleware that wraps MCP tool handlers.
 type ToolMiddleware interface {
 	Middleware(next server.ToolHandlerFunc) server.ToolHandlerFunc
 }
 
+// HttpMiddleware is implemented by any middleware that wraps HTTP handlers.
 type HttpMiddleware interface {
 	Middleware(next http.Handler) http.Handler
 }

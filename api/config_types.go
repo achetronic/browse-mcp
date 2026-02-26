@@ -16,69 +16,79 @@ package api
 
 import "time"
 
-// ServerTransportHTTPConfig represents the HTTP transport configuration
+// ServerTransportHTTPConfig holds the bind address for the HTTP transport.
 type ServerTransportHTTPConfig struct {
 	Host string `yaml:"host"`
 }
 
-// ServerTransportConfig represents the transport configuration
+// ServerTransportConfig defines how the MCP server is exposed.
+// Type can be "stdio" (local, no network) or "http" (networked, supports auth).
 type ServerTransportConfig struct {
 	Type string                    `yaml:"type"`
 	HTTP ServerTransportHTTPConfig `yaml:"http,omitempty"`
 }
 
-// ServerConfig represents the server configuration section
+// ServerConfig holds the MCP server identity and transport configuration.
 type ServerConfig struct {
 	Name      string                `yaml:"name"`
 	Version   string                `yaml:"version"`
 	Transport ServerTransportConfig `yaml:"transport,omitempty"`
 }
 
-// AccessLogsConfig represents the AccessLogs middleware configuration
+// AccessLogsConfig controls request logging behaviour.
+// ExcludedHeaders are removed from logs entirely.
+// RedactedHeaders are truncated to 10 characters + "***" to avoid leaking secrets.
 type AccessLogsConfig struct {
 	ExcludedHeaders []string `yaml:"excluded_headers"`
 	RedactedHeaders []string `yaml:"redacted_headers"`
 }
 
-// JWTValidationLocalConfig represents the local JWT validation configuration
+// JWTValidationLocalConfig holds the configuration for local JWT validation.
+// The middleware fetches and caches the JWKS from JWKSUri and validates
+// incoming tokens against it. AllowConditions are CEL expressions evaluated
+// against the JWT payload — all must return true for the request to pass.
 type JWTValidationLocalConfig struct {
-	JWKSUri         string                        `yaml:"jwks_uri"`
-	CacheInterval   time.Duration                 `yaml:"cache_interval"`
+	JWKSUri         string                       `yaml:"jwks_uri"`
+	CacheInterval   time.Duration                `yaml:"cache_interval"`
 	AllowConditions []JWTValidationAllowCondition `yaml:"allow_conditions,omitempty"`
 }
 
-// JWTValidationAllowCondition represents a condition for allowing a request after the local JWT validation
+// JWTValidationAllowCondition is a CEL expression evaluated against the JWT payload.
+// Example: 'payload.iss == "https://my-idp.com"'
 type JWTValidationAllowCondition struct {
 	Expression string `yaml:"expression"`
 }
 
-// JWTValidationConfig represents the JWT validation configuration
+// JWTValidationConfig holds JWT validation settings.
+// AllowConditions are checked first (coarse-grained), then tool and web
+// policies apply fine-grained per-tool and per-URL restrictions.
 type JWTValidationConfig struct {
-	Strategy        string                   `yaml:"strategy"`
-	ForwardedHeader string                   `yaml:"forwarded_header,omitempty"`
-	Local           JWTValidationLocalConfig `yaml:"local,omitempty"`
+	Local JWTValidationLocalConfig `yaml:"local,omitempty"`
 }
 
-// JWTConfig represents the JWT middleware configuration
+// JWTConfig enables or disables JWT validation for the HTTP transport.
 type JWTConfig struct {
 	Enabled    bool                `yaml:"enabled"`
 	Validation JWTValidationConfig `yaml:"validation,omitempty"`
 }
 
-// MiddlewareConfig represents the middleware configuration section
+// MiddlewareConfig groups all HTTP middleware configuration.
 type MiddlewareConfig struct {
 	AccessLogs AccessLogsConfig `yaml:"access_logs"`
 	JWT        JWTConfig        `yaml:"jwt,omitempty"`
 }
 
-// OAuthAuthorizationServer represents the OAuth Authorization Server configuration
+// OAuthAuthorizationServer configures the /.well-known/oauth-authorization-server endpoint.
+// Required when exposing the MCP server publicly so clients can discover the auth server.
 type OAuthAuthorizationServer struct {
 	Enabled   bool   `yaml:"enabled"`
 	UrlSuffix string `yaml:"url_suffix,omitempty"`
 	IssuerUri string `yaml:"issuer_uri"`
 }
 
-// OAuthProtectedResourceConfig represents the OAuth Protected Resource configuration
+// OAuthProtectedResourceConfig configures the /.well-known/oauth-protected-resource endpoint.
+// Required when exposing the MCP server publicly so clients can discover the resource metadata
+// and know which scopes and auth servers are accepted.
 type OAuthProtectedResourceConfig struct {
 	Enabled   bool   `yaml:"enabled"`
 	UrlSuffix string `yaml:"url_suffix,omitempty"`
@@ -99,51 +109,57 @@ type OAuthProtectedResourceConfig struct {
 	DPoPBoundAccessTokensRequired         bool     `yaml:"dpop_bound_access_tokens_required,omitempty"`
 }
 
-// ToolPolicyConfig represents a policy for tool access control
+// ToolPolicyConfig restricts which MCP tools a user can call based on their JWT claims.
+// Expression is a CEL expression evaluated against the JWT payload.
+// AllowedTools supports exact names ("web_fetch"), wildcards ("*"), and prefixes ("web_*").
 type ToolPolicyConfig struct {
 	Expression   string   `yaml:"expression"`
 	AllowedTools []string `yaml:"allowed_tools"`
 }
 
-// WebPolicyConfig controls which URLs are accessible based on JWT claims
+// WebPolicyConfig restricts which domains a user can access via web_fetch and web_download.
+// Expression is a CEL expression evaluated against the JWT payload.
+// AllowedDomains supports exact hostnames ("docs.k8s.io") and wildcard subdomains ("*.github.com").
+// Use ["*"] to allow all domains.
+// Note: web_search is not restricted — it returns snippets only, no content is fetched.
 type WebPolicyConfig struct {
-	// Expression is a CEL expression evaluated against the JWT payload
-	Expression string `yaml:"expression"`
-	// AllowedDomains is a list of allowed domain patterns (e.g. "*.github.com", "docs.k8s.io")
-	// Use ["*"] to allow all domains
+	Expression     string   `yaml:"expression"`
 	AllowedDomains []string `yaml:"allowed_domains"`
 }
 
-// PoliciesConfig represents the policies configuration section
+// PoliciesConfig groups tool and web access policies.
+// Both use CEL expressions evaluated against the JWT payload.
+// The first matching policy wins.
 type PoliciesConfig struct {
 	Tools []ToolPolicyConfig `yaml:"tools"`
-	// Web policies control which URLs each group/claim can access via web_search, web_fetch, web_download
-	Web []WebPolicyConfig `yaml:"web"`
+	Web   []WebPolicyConfig  `yaml:"web"`
 }
 
-// WebConfig holds web search/fetch configuration
+// WebConfig holds search provider configuration.
 type WebConfig struct {
+	// DefaultProvider sets which provider is used when none is specified in the request.
+	// Options: duckduckgo (no key), tavily, serper.
 	DefaultProvider string          `yaml:"default_provider,omitempty"`
 	Providers       ProvidersConfig `yaml:"providers,omitempty"`
 }
 
-// ProvidersConfig holds API keys for each search provider
+// ProvidersConfig holds API keys for each search provider.
 type ProvidersConfig struct {
 	Tavily TavilyConfig `yaml:"tavily,omitempty"`
 	Serper SerperConfig `yaml:"serper,omitempty"`
 }
 
-// TavilyConfig holds Tavily API configuration
+// TavilyConfig holds the Tavily API key.
 type TavilyConfig struct {
 	APIKey string `yaml:"api_key"`
 }
 
-// SerperConfig holds Serper API configuration
+// SerperConfig holds the Serper API key.
 type SerperConfig struct {
 	APIKey string `yaml:"api_key"`
 }
 
-// Configuration represents the complete configuration structure
+// Configuration is the top-level config structure loaded from config.yaml.
 type Configuration struct {
 	Server                   ServerConfig                 `yaml:"server,omitempty"`
 	Middleware               MiddlewareConfig             `yaml:"middleware,omitempty"`

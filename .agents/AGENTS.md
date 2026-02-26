@@ -4,7 +4,7 @@ This document helps AI agents work effectively in this repository.
 
 ## Project Overview
 
-**Browse MCP** is a Model Context Protocol server that gives AI assistants access to the internet. Search, fetch page content, and download files — all from a single MCP server. Built in Go, no API key required for basic usage.
+**Browse MCP** is a Model Context Protocol server that gives AI assistants access to the internet. Search, fetch page content, and download files. Supports JWT-based authentication, access logs, tool policies and URL-based web policies for production use.
 
 ## Key Technologies
 
@@ -12,6 +12,8 @@ This document helps AI agents work effectively in this repository.
 - **MCP Library**: `github.com/mark3labs/mcp-go` v0.44.0
 - **HTML parsing**: `github.com/PuerkitoBio/goquery`
 - **HTML to text**: `github.com/JohannesKaufmann/html-to-markdown`
+- **CEL policies**: `github.com/google/cel-go`
+- **JWT validation**: `github.com/golang-jwt/jwt/v5`
 - **Configuration**: YAML with environment variable expansion
 
 ## Code Organization
@@ -19,86 +21,108 @@ This document helps AI agents work effectively in this repository.
 ```
 .
 ├── cmd/
-│   └── main.go                  # Entrypoint
+│   └── main.go                       # Entrypoint — wires all components together
 ├── api/
-│   └── config_types.go          # Configuration types (no Brave — requires credit card)
+│   └── config_types.go               # All config structs with inline documentation
 ├── internal/
 │   ├── config/
-│   │   └── config.go            # YAML config loader
+│   │   └── config.go                 # YAML loader with env expansion
 │   ├── globals/
-│   │   └── globals.go           # ApplicationContext
+│   │   └── globals.go                # ApplicationContext
+│   ├── handlers/
+│   │   ├── handlers.go               # HandlersManager
+│   │   ├── oauth_authorization_server.go   # /.well-known/oauth-authorization-server
+│   │   └── oauth_protected_resource.go     # /.well-known/oauth-protected-resource
+│   ├── middlewares/
+│   │   ├── interfaces.go             # ToolMiddleware and HttpMiddleware interfaces
+│   │   ├── logging.go                # Access logs (redact/exclude headers)
+│   │   ├── jwt_validation.go         # JWT validation against JWKS + CEL allow_conditions
+│   │   ├── jwt_validation_utils.go   # JWKS caching, key type conversion (RSA, EC, HMAC)
+│   │   ├── tool_policy.go            # CEL-based per-tool access control
+│   │   ├── web_policy.go             # CEL-based per-URL access control (unique to this MCP)
+│   │   ├── noop.go                   # No-op middleware for testing
+│   │   └── utils.go                  # getRequestScheme helper
 │   ├── web/
-│   │   ├── search.go            # Search providers: DuckDuckGo, Tavily, Serper
-│   │   └── fetch.go             # Fetch + Download + HTML cleaning
+│   │   ├── search.go                 # Search providers: DuckDuckGo, Tavily, Serper
+│   │   └── fetch.go                  # Fetch + Download + HTML cleaning
 │   └── tools/
-│       ├── tools.go             # ToolsManager + tool registration
-│       ├── handlers.go          # Tool handler implementations
-│       └── helpers.go           # getArgs, getString, getInt
+│       ├── tools.go                  # ToolsManager, tool registration, middleware wiring
+│       ├── handlers.go               # web_search, web_fetch, web_download handlers
+│       └── helpers.go                # getArgs, getString, getInt
 ├── docs/
-│   ├── config-stdio.yaml        # Stdio config example
-│   ├── config-http.yaml         # HTTP config example
+│   ├── config-stdio.yaml             # Minimal stdio config
+│   ├── config-http.yaml              # Full HTTP config with auth and policies
 │   └── images/
-│       └── header.svg           # README header
+│       └── header.svg                # README header
 └── .github/workflows/
-    └── release.yaml             # CI/CD release pipeline
+    └── release.yaml                  # CI/CD — binaries + Docker image
 ```
+
+## Middleware Stack (HTTP mode)
+
+```
+Request
+  → AccessLogsMiddleware    (logs method, URL, duration, headers)
+  → JWTValidationMiddleware (validates JWT against JWKS, stores raw token in context)
+  → MCP Handler
+      → ToolPolicyMiddleware  (checks JWT claims against allowed_tools per policy)
+      → WebPolicyMiddleware   (checks JWT claims against allowed_domains per policy)
+      → actual tool handler
+```
+
+JWT payload flows through context: JWTValidationMiddleware stores the raw token string
+under `JWTContextKey`. Tool and web policy middlewares re-parse it on each call to extract
+the payload map used in CEL expressions.
 
 ## Available Tools
 
-- `web_search` — Search the web. DuckDuckGo by default (no key), Tavily or Serper with API key
-- `web_fetch` — Fetch a URL and return clean text. HTML noise removed automatically
+- `web_search` — Search the web. DuckDuckGo (no key), Tavily or Serper with API key
+- `web_fetch` — Fetch a URL, strip HTML noise, return clean text
 - `web_download` — Download a file from a URL to disk
 
-## Recommended Flow
+## Security Model
 
-```
-1. web_search(query: "...") → get list of URLs with snippets
-2. web_fetch(url: "...") → read full content of the most relevant URL
-3. web_download(url: "...", file_path: "...") → save files to disk if needed
-```
+### JWT validation (`middleware.jwt`)
+- Always reads from `Authorization: Bearer`
+- Validates signature against JWKS (fetched and cached from `jwks_uri`)
+- `allow_conditions` — CEL expressions against JWT payload, all must be true (coarse-grained: issuer, audience, etc.)
+
+### Tool policies (`policies.tools`)
+- CEL expression against JWT payload → list of allowed tools
+- First matching policy wins, supports `*` and `web_*` prefixes
+
+### Web policies (`policies.web`)
+- CEL expression against JWT payload → list of allowed domains
+- Applies to `web_fetch` and `web_download` only
+- `web_search` is not restricted (returns snippets, no content fetched)
+- Supports exact domains and wildcard subdomains (`*.github.com`)
+
+### OAuth metadata endpoints
+- `/.well-known/oauth-authorization-server` — enabled via `oauth_authorization_server.enabled`
+- `/.well-known/oauth-protected-resource` — enabled via `oauth_protected_resource.enabled`
 
 ## Search Providers
 
-Three providers implemented and verified:
-
-- **DuckDuckGo** — default, no key needed, scrapes DDG HTML. May occasionally rate-limit.
-- **Tavily** — POST to `https://api.tavily.com/search`. Free tier: 1,000 credits/month. Best for AI use cases.
-- **Serper** — POST to `https://google.serper.dev/search`. Paid, credit-based. Scrapes Google.
-
-Brave was removed — free tier requires credit card.
-
-Config example:
-
-```yaml
-web:
-  default_provider: "tavily"
-  providers:
-    tavily:
-      api_key: "$TAVILY_API_KEY"
-    serper:
-      api_key: "$SERPER_API_KEY"
-```
-
-## HTML Cleaning
-
-web_fetch strips scripts, styles, nav, header, footer, iframes and SVGs before converting to text. For large pages (>50KB) content is saved to a temp file and the path is returned.
+- **DuckDuckGo** — scrapes DDG HTML, no key needed. May rate-limit.
+- **Tavily** — POST to `https://api.tavily.com/search`. 1,000 credits/month free.
+- **Serper** — POST to `https://google.serper.dev/search`. Paid, credit-based.
 
 ## Adding New Providers
 
-1. Add provider constant and config struct in `api/config_types.go`
-2. Add the search function in `internal/web/search.go`
-3. Add the case in the `Search()` switch statement
-4. Add the API key field in `ToolsManagerDependencies` in `internal/tools/tools.go`
-5. Pass the key from config in `cmd/main.go`
+1. Add config struct in `api/config_types.go`
+2. Add provider constant and search function in `internal/web/search.go`
+3. Add the case in the `Search()` switch
+4. Add API key field in `ToolsManagerDependencies` and pass it from `cmd/main.go`
 
 ## Common Issues
 
-- **DuckDuckGo returns empty results**: DDG is rate-limiting. Switch to Tavily.
-- **web_fetch returns partial content**: Page is larger than 5MB. Use web_download instead.
-- **Provider API key not found**: Check env var is set and config uses `$VAR_NAME` syntax.
+- **Empty search results**: DuckDuckGo rate-limiting. Switch to Tavily.
+- **web_fetch partial content**: Page >5MB. Use `web_download` instead.
+- **Access denied**: JWT doesn't match any policy, or domain not in allowlist.
 
 ## Guidelines
 
 1. Release notes must always be written in **English**
 2. Plain language — no corporate speak
 3. Commits are authored as **Magec** (`magec@magec.dev`)
+4. All public structs and functions must have a comment explaining what they do

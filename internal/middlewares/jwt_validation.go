@@ -28,55 +28,63 @@ import (
 	"github.com/google/cel-go/cel"
 )
 
-// JWTContextKey is the key used to store the JWT in context
+// JWTContextKey is the context key used to pass the raw JWT token string
+// to downstream tool middlewares (tool_policy, web_policy).
 type contextKey string
 
 const JWTContextKey contextKey = "jwt_token"
 
+// JWTValidationMiddlewareDependencies holds the dependencies for this middleware.
 type JWTValidationMiddlewareDependencies struct {
 	AppCtx *globals.ApplicationContext
 }
 
+// JWTValidationMiddleware validates incoming JWTs against a JWKS endpoint.
+//
+// When enabled:
+//   - Reads the token from the Authorization: Bearer header
+//   - Validates signature using JWKS (fetched and cached from jwks_uri)
+//   - Evaluates optional CEL allow_conditions against the JWT payload
+//   - Stores the raw token string in the request context under JWTContextKey
+//     so that tool middlewares (tool_policy, web_policy) can access the payload
+//
+// If validation fails at any step, the request is rejected with 401.
+// If jwt.enabled is false, the middleware is a no-op.
 type JWTValidationMiddleware struct {
 	dependencies JWTValidationMiddlewareDependencies
 
-	// Carried stuff
+	// jwks is the cached set of public keys used to verify JWT signatures.
+	// It is refreshed periodically by the cacheJWKS goroutine.
 	jwks  *JWKS
 	mutex sync.Mutex
 
-	//
+	// celPrograms holds precompiled CEL programs for allow_conditions.
+	// All conditions must evaluate to true for the request to be allowed.
 	celPrograms []*cel.Program
 }
 
+// NewJWTValidationMiddleware creates the middleware and precompiles any CEL expressions
+// defined in allow_conditions. Starts the JWKS cache goroutine if JWT is enabled.
 func NewJWTValidationMiddleware(deps JWTValidationMiddlewareDependencies) (*JWTValidationMiddleware, error) {
+	mw := &JWTValidationMiddleware{dependencies: deps}
 
-	mw := &JWTValidationMiddleware{
-		dependencies: deps,
-	}
-
-	// Launch JWKS worker only when requested
-	if mw.dependencies.AppCtx.Config.Middleware.JWT.Enabled &&
-		mw.dependencies.AppCtx.Config.Middleware.JWT.Validation.Strategy == "local" {
+	// Start JWKS cache goroutine only if JWT validation is enabled
+	if mw.dependencies.AppCtx.Config.Middleware.JWT.Enabled {
 		go mw.cacheJWKS()
 	}
 
-	// Precompile and check CEL expressions to fail-fast and safe resources.
-	// They will be truly used later.
-	allowConditionsEnv, err := cel.NewEnv(
-		cel.Variable("payload", cel.DynType),
-	)
+	// Precompile CEL allow_conditions at startup to catch syntax errors early
+	// and avoid per-request compilation overhead.
+	allowConditionsEnv, err := cel.NewEnv(cel.Variable("payload", cel.DynType))
 	if err != nil {
 		return nil, fmt.Errorf("CEL environment creation error: %s", err.Error())
 	}
 
 	for _, allowCondition := range mw.dependencies.AppCtx.Config.Middleware.JWT.Validation.Local.AllowConditions {
-
-		// Compile and execute the code
 		ast, issues := allowConditionsEnv.Compile(allowCondition.Expression)
 		if issues != nil && issues.Err() != nil {
-			return nil, fmt.Errorf("CEL expression compilation exited with error: %s", issues.Err())
+			return nil, fmt.Errorf("CEL expression compilation error for '%s': %s", allowCondition.Expression, issues.Err())
 		}
-
 		prg, err := allowConditionsEnv.Program(ast)
 		if err != nil {
 			return nil, fmt.Errorf("CEL program construction error: %s", err.Error())
@@ -87,102 +95,83 @@ func NewJWTValidationMiddleware(deps JWTValidationMiddlewareDependencies) (*JWTV
 	return mw, nil
 }
 
+// Middleware returns an http.Handler that validates the JWT on every request.
+// The token is read from the Authorization: Bearer header.
+//
+// On success, the raw token string is stored in the request context under
+// JWTContextKey so that tool-level middlewares can extract the payload for
+// CEL policy evaluation without re-fetching the JWKS.
 func (mw *JWTValidationMiddleware) Middleware(next http.Handler) http.Handler {
-
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 
-		var wwwAuthResourceMetadataUrl string
-		var wwwAuthScope string
-
+		// If JWT validation is disabled, pass through immediately
 		if !mw.dependencies.AppCtx.Config.Middleware.JWT.Enabled {
-			goto nextStage
+			next.ServeHTTP(rw, req)
+			return
 		}
 
-		// Add WWW-Authenticate header just in case is needed.
-		// Will be cleared for authorized requests later.
+		// Set WWW-Authenticate header pointing to our protected resource metadata.
+		// This is required by the MCP OAuth spec and will be cleared on success.
 		// Ref: https://modelcontextprotocol.io/specification/draft/basic/authorization
-		wwwAuthResourceMetadataUrl = fmt.Sprintf("%s://%s/.well-known/oauth-protected-resource%s",
+		wwwAuthURL := fmt.Sprintf("%s://%s/.well-known/oauth-protected-resource%s",
 			getRequestScheme(req), req.Host, mw.dependencies.AppCtx.Config.OAuthProtectedResource.UrlSuffix)
-		wwwAuthScope = strings.Join(mw.dependencies.AppCtx.Config.OAuthProtectedResource.ScopesSupported, " ")
-
+		wwwAuthScope := strings.Join(mw.dependencies.AppCtx.Config.OAuthProtectedResource.ScopesSupported, " ")
 		rw.Header().Set("WWW-Authenticate",
-			`Bearer error="invalid_token", 
-							  resource_metadata="`+wwwAuthResourceMetadataUrl+`", 
-							  scope="`+wwwAuthScope+`"`)
+			`Bearer error="invalid_token", resource_metadata="`+wwwAuthURL+`", scope="`+wwwAuthScope+`"`)
 
-		//
-		switch mw.dependencies.AppCtx.Config.Middleware.JWT.Validation.Strategy {
-		case "local":
-			// 1. Extract token from header
-			authHeader := req.Header.Get("Authorization")
-			if authHeader == "" {
-				http.Error(rw, "RBAC: Access Denied: Authorization header not found", http.StatusUnauthorized)
-				return
-			}
-			tokenString := strings.Replace(authHeader, "Bearer ", "", 1)
+		// Extract the Bearer token from the Authorization header
+		authHeader := req.Header.Get("Authorization")
+		if authHeader == "" {
+			http.Error(rw, "RBAC: Access Denied: Authorization header not found", http.StatusUnauthorized)
+			return
+		}
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
-			// Reject unauthorized requests
-			_, err := mw.isTokenValid(tokenString)
-			if err != nil {
-				http.Error(rw, fmt.Sprintf("RBAC: Access Denied: Invalid token: %v", err.Error()), http.StatusUnauthorized)
-				return
-			}
-
-			// Put the JWT into the validated request header
-			req.Header.Set(mw.dependencies.AppCtx.Config.Middleware.JWT.Validation.ForwardedHeader, tokenString)
-
-			// Extract the JWT payload
-			tokenStringParts := strings.Split(tokenString, ".")
-
-			// Decode it into a Go's structure for later
-			tokenPayloadBytes, err := base64.RawURLEncoding.DecodeString(tokenStringParts[1])
-			if err != nil {
-				mw.dependencies.AppCtx.Logger.Error("error decoding JWT payload from base64", "error", err.Error())
-				http.Error(rw, "RBAC: Access Denied: JWT Payload can not be decoded", http.StatusUnauthorized)
-				return
-			}
-
-			tokenPayload := map[string]any{}
-			err = json.Unmarshal(tokenPayloadBytes, &tokenPayload)
-			if err != nil {
-				mw.dependencies.AppCtx.Logger.Error("error decoding JWT payload from JSON", "error", err.Error())
-				http.Error(rw, "RBAC: Access Denied: Internal Issue", http.StatusUnauthorized)
-				return
-			}
-
-			// Check allowance conditions for the JWT
-			// At this point, we assume the JWT is unmarshalled into a golang structure
-			for _, celProgram := range mw.celPrograms {
-				out, _, err := (*celProgram).Eval(map[string]interface{}{
-					"payload": tokenPayload,
-				})
-
-				if err != nil {
-					mw.dependencies.AppCtx.Logger.Error("CEL program evaluation error", "error", err.Error())
-					http.Error(rw, "RBAC: Access Denied: Internal Issue", http.StatusUnauthorized)
-					return
-				}
-
-				if out.Value() != true {
-					http.Error(rw, "RBAC: Access Denied: JWT does not meet conditions", http.StatusUnauthorized)
-					return
-				}
-			}
-
-		default:
-			// Having a validated JWT into a specific header is the default behavior,
-			// as having tools like Istio securing APIs is much more safe and reliable
-			// When the token is already validated, do nothing.
+		// Validate the token signature against the cached JWKS
+		if _, err := mw.isTokenValid(tokenString); err != nil {
+			http.Error(rw, fmt.Sprintf("RBAC: Access Denied: Invalid token: %v", err.Error()), http.StatusUnauthorized)
+			return
 		}
 
-	nextStage:
+		// Decode the JWT payload (middle segment) for CEL condition evaluation
+		parts := strings.Split(tokenString, ".")
+		if len(parts) != 3 {
+			http.Error(rw, "RBAC: Access Denied: Malformed token", http.StatusUnauthorized)
+			return
+		}
+		payloadBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
+		if err != nil {
+			mw.dependencies.AppCtx.Logger.Error("error decoding JWT payload from base64", "error", err.Error())
+			http.Error(rw, "RBAC: Access Denied: JWT payload cannot be decoded", http.StatusUnauthorized)
+			return
+		}
+		tokenPayload := map[string]any{}
+		if err := json.Unmarshal(payloadBytes, &tokenPayload); err != nil {
+			mw.dependencies.AppCtx.Logger.Error("error parsing JWT payload JSON", "error", err.Error())
+			http.Error(rw, "RBAC: Access Denied: Internal issue", http.StatusUnauthorized)
+			return
+		}
+
+		// Evaluate allow_conditions — all must return true.
+		// This is a coarse-grained check (e.g. correct issuer, audience).
+		// Fine-grained per-tool and per-URL checks happen in tool middlewares.
+		for _, celProgram := range mw.celPrograms {
+			out, _, err := (*celProgram).Eval(map[string]interface{}{"payload": tokenPayload})
+			if err != nil {
+				mw.dependencies.AppCtx.Logger.Error("CEL allow_condition evaluation error", "error", err.Error())
+				http.Error(rw, "RBAC: Access Denied: Internal issue", http.StatusUnauthorized)
+				return
+			}
+			if out.Value() != true {
+				http.Error(rw, "RBAC: Access Denied: JWT does not meet conditions", http.StatusUnauthorized)
+				return
+			}
+		}
+
+		// Token is valid — clear the WWW-Authenticate header and store the
+		// raw token string in the context for downstream tool middlewares.
 		rw.Header().Del("WWW-Authenticate")
-		// Store the JWT in the request context for downstream use (e.g., tool policies)
-		if authHeader := req.Header.Get("Authorization"); authHeader != "" {
-			tokenString := strings.Replace(authHeader, "Bearer ", "", 1)
-			ctx := context.WithValue(req.Context(), JWTContextKey, tokenString)
-			req = req.WithContext(ctx)
-		}
-		next.ServeHTTP(rw, req)
+		ctx := context.WithValue(req.Context(), JWTContextKey, tokenString)
+		next.ServeHTTP(rw, req.WithContext(ctx))
 	})
 }
