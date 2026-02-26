@@ -8,20 +8,22 @@
 
   <rect width="800" height="140" rx="12" fill="url(#bg)"/>
 
-  <!-- Flat globe + magnifier icon -->
   <g transform="translate(72, 70)">
 
-    <!-- Globe circle flat -->
+    <!-- Ocean -->
     <circle cx="0" cy="0" r="44" fill="#2563eb"/>
 
-    <!-- Latitude lines (flat, just strokes) -->
-    <line x1="-44" y1="0" x2="44" y2="0" stroke="white" stroke-width="1.5" opacity="0.35"/>
-    <ellipse cx="0" cy="0" rx="44" ry="17" fill="none" stroke="white" stroke-width="1.5" opacity="0.35"/>
+    <!-- Continents — simplified flat shapes -->
+    <!-- Europe + Africa -->
+    <path d="M -4 -30 Q 2 -28 6 -22 Q 10 -14 8 -4 Q 12 4 10 14 Q 6 24 2 30 Q -2 28 -6 20 Q -10 10 -8 0 Q -10 -10 -8 -22 Z" fill="#22c55e"/>
+    <!-- Americas -->
+    <path d="M -20 -26 Q -14 -24 -12 -16 Q -10 -8 -14 0 Q -12 10 -16 20 Q -20 28 -24 22 Q -26 14 -24 4 Q -26 -6 -22 -18 Z" fill="#22c55e"/>
+    <!-- Asia -->
+    <path d="M 8 -32 Q 18 -28 24 -18 Q 28 -8 22 -2 Q 16 4 10 0 Q 6 -8 8 -18 Z" fill="#22c55e"/>
+    <!-- Australia -->
+    <path d="M 18 10 Q 26 8 28 16 Q 26 24 18 22 Q 12 20 14 12 Z" fill="#22c55e"/>
 
-    <!-- Longitude curves -->
-    <ellipse cx="0" cy="0" rx="17" ry="44" fill="none" stroke="white" stroke-width="1.5" opacity="0.35"/>
-
-    <!-- Magnifier over globe, flat style -->
+    <!-- Magnifier flat -->
     <circle cx="13" cy="-11" r="14" fill="none" stroke="white" stroke-width="4"/>
     <line x1="22" y1="-1" x2="32" y2="9" stroke="white" stroke-width="4" stroke-linecap="round"/>
 
