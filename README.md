@@ -20,7 +20,7 @@
 
 This MCP gives your AI assistant real internet access:
 
-- **Search** the web using DuckDuckGo (no setup) or Brave, Tavily, Serper (with API key)
+- **Search** the web using DuckDuckGo (no setup), Tavily or Serper (with API key)
 - **Fetch** any URL and get the content as clean readable text, with HTML noise stripped automatically
 - **Download** files from the web directly to disk
 
@@ -49,10 +49,10 @@ To use a better provider, add your API key:
 
 ```yaml
 web:
-  default_provider: "brave"
+  default_provider: "tavily"
   providers:
-    brave:
-      api_key: "$BRAVE_API_KEY"
+    tavily:
+      api_key: "$TAVILY_API_KEY"
 ```
 
 See `docs/config-stdio.yaml` and `docs/config-http.yaml` for full examples.
@@ -90,9 +90,8 @@ make build
 | Provider | API Key needed | Notes |
 |----------|---------------|-------|
 | `duckduckgo` | No | Default. Works out of the box. May occasionally rate-limit. |
-| `brave` | Yes (free tier available) | 2000 queries/month free. Reliable. |
-| `tavily` | Yes (free tier available) | Built for AI. Returns extracted content alongside results. |
-| `serper` | Yes (free tier available) | Scrapes Google. 2500 queries/month free. |
+| `tavily` | Yes ([free tier](https://tavily.com)) | Built for AI. Returns extracted content alongside results. 1000 requests/month free. |
+| `serper` | Yes ([free tier](https://serper.dev)) | Scrapes Google. 2500 queries/month free. |
 
 You can switch provider per-request by passing `provider` to `web_search`, or set a default in config.
 
@@ -124,14 +123,14 @@ docker run -v $(pwd)/config.yaml:/config/config.yaml browse-mcp
 - Max fetch size: 5MB
 - Only HTTP and HTTPS are supported
 - Pages with heavy JavaScript may not render correctly — the fetcher doesn't run JS
-- DuckDuckGo may occasionally block requests; switch to Brave for production use
+- DuckDuckGo may occasionally block requests; switch to Tavily or Serper for production use
 
 ---
 
 ## 🔧 Troubleshooting
 
 ### Empty search results
-DuckDuckGo is rate-limiting. Try again in a moment or switch to Brave.
+DuckDuckGo is rate-limiting. Try again in a moment or switch to Tavily.
 
 ### web_fetch returns partial content
 The page is larger than 5MB. Use `web_download` to save it to disk first, then read it with filesystem tools.

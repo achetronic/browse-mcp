@@ -21,14 +21,14 @@ This document helps AI agents work effectively in this repository.
 ├── cmd/
 │   └── main.go                  # Entrypoint
 ├── api/
-│   └── config_types.go          # Configuration types
+│   └── config_types.go          # Configuration types (no Brave — requires credit card)
 ├── internal/
 │   ├── config/
 │   │   └── config.go            # YAML config loader
 │   ├── globals/
 │   │   └── globals.go           # ApplicationContext
 │   ├── web/
-│   │   ├── search.go            # Search providers (DuckDuckGo, Brave, Tavily, Serper)
+│   │   ├── search.go            # Search providers: DuckDuckGo, Tavily, Serper
 │   │   └── fetch.go             # Fetch + Download + HTML cleaning
 │   └── tools/
 │       ├── tools.go             # ToolsManager + tool registration
@@ -45,7 +45,7 @@ This document helps AI agents work effectively in this repository.
 
 ## Available Tools
 
-- `web_search` — Search the web. DuckDuckGo by default (no key), or Brave/Tavily/Serper with API key
+- `web_search` — Search the web. DuckDuckGo by default (no key), Tavily or Serper with API key
 - `web_fetch` — Fetch a URL and return clean text. HTML noise removed automatically
 - `web_download` — Download a file from a URL to disk
 
@@ -59,14 +59,20 @@ This document helps AI agents work effectively in this repository.
 
 ## Search Providers
 
-DuckDuckGo is the default and requires no configuration. To use others, set the API key in config:
+Three providers implemented and verified:
+
+- **DuckDuckGo** — default, no key needed, scrapes DDG HTML. May occasionally rate-limit.
+- **Tavily** — POST to `https://api.tavily.com/search`. Free tier: 1000 req/month. Best for AI use cases.
+- **Serper** — POST to `https://google.serper.dev/search`. Free tier: 2500 req/month. Scrapes Google.
+
+Brave was removed — free tier requires credit card.
+
+Config example:
 
 ```yaml
 web:
-  default_provider: "brave"
+  default_provider: "tavily"
   providers:
-    brave:
-      api_key: "$BRAVE_API_KEY"
     tavily:
       api_key: "$TAVILY_API_KEY"
     serper:
@@ -75,19 +81,21 @@ web:
 
 ## HTML Cleaning
 
-web_fetch strips scripts, styles, nav, header, footer, iframes and SVGs before converting to text. This removes most noise and keeps the actual content. For large pages (>50KB) content is saved to a temp file and the path is returned.
+web_fetch strips scripts, styles, nav, header, footer, iframes and SVGs before converting to text. For large pages (>50KB) content is saved to a temp file and the path is returned.
 
 ## Adding New Providers
 
-1. Add provider constants and config in `api/config_types.go`
+1. Add provider constant and config struct in `api/config_types.go`
 2. Add the search function in `internal/web/search.go`
 3. Add the case in the `Search()` switch statement
+4. Add the API key field in `ToolsManagerDependencies` in `internal/tools/tools.go`
+5. Pass the key from config in `cmd/main.go`
 
 ## Common Issues
 
-- **DuckDuckGo returns empty results**: DDG occasionally blocks scrapers. Try again or switch to Brave.
-- **web_fetch returns partial content**: Page is larger than 5MB limit or uses heavy JavaScript. Consider downloading to file with web_download instead.
-- **Provider API key not found**: Check that the env var is set and the config references it correctly.
+- **DuckDuckGo returns empty results**: DDG is rate-limiting. Switch to Tavily.
+- **web_fetch returns partial content**: Page is larger than 5MB. Use web_download instead.
+- **Provider API key not found**: Check env var is set and config uses `$VAR_NAME` syntax.
 
 ## Guidelines
 
