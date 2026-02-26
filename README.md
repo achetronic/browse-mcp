@@ -30,7 +30,11 @@ This MCP gives your AI assistant real internet access:
 
 ## 🚀 Getting started
 
-### STDIO (local use, no auth)
+### 1. Create a config file
+
+Before running anything, create a `config.yaml`. The transport section defines how the MCP server is exposed.
+
+**STDIO** — simplest option, no network exposure. Ideal for local use with tools like Claude Desktop or Cursor.
 
 ```yaml
 server:
@@ -43,13 +47,7 @@ web:
   default_provider: "duckduckgo"
 ```
 
-```bash
-go mod tidy
-make build
-./bin/browse-mcp -config config.yaml
-```
-
-### HTTP (production, with auth)
+**HTTP** — exposes the server over the network. Required for multi-user setups, production deployments, or when you need JWT auth and URL policies.
 
 ```yaml
 server:
@@ -79,6 +77,26 @@ web:
 ```
 
 See `docs/config-http.yaml` for the full example including policies.
+
+### 2. Run it
+
+**Binary** — lower overhead, direct access to the host filesystem (useful if you use `web_download` to save files locally).
+
+```bash
+go mod tidy
+make build
+./bin/browse-mcp -config config.yaml
+```
+
+**Docker** — fully isolated, no host dependencies. The downloaded files go inside the container unless you mount a volume.
+
+```bash
+docker build -t browse-mcp .
+docker run \
+  -v $(pwd)/config.yaml:/config/config.yaml \
+  -v $(pwd)/downloads:/downloads \
+  browse-mcp
+```
 
 ---
 
@@ -112,11 +130,15 @@ Switch provider per-request by passing `provider` to `web_search`, or set a defa
 
 ---
 
-## 🧹 How web_fetch cleans pages
+## ⚠️ Limitations
 
-Before returning content, the fetcher strips scripts, styles, nav, headers, footers, iframes and SVGs, then converts HTML to plain text and collapses whitespace.
+**Fetch size** — The fetcher reads up to 5MB per request. Pages larger than 50KB are saved to a temp file instead of returned inline. Use your filesystem tools to read them.
 
-For pages larger than 50KB the content is saved to a temp file — the path is returned so you can read it with filesystem tools.
+**JavaScript** — The fetcher doesn't run JS. Pages that render entirely client-side will return little or no content. For those, consider `web_download` to save the raw HTML and inspect it manually.
+
+**DuckDuckGo** — Works without a key but may rate-limit under heavy use. Switch to Tavily for production workloads.
+
+**Protocols** — Only HTTP and HTTPS are supported. No FTP, no websockets.
 
 ---
 
