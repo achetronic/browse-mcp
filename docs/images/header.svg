@@ -8,38 +8,50 @@
 
   <rect width="800" height="140" rx="12" fill="url(#bg)"/>
 
-  <!-- Browser window -->
-  <g transform="translate(22, 14)">
+  <!-- Browser window icon -->
+  <g transform="translate(18, 12)">
 
-    <!-- Window frame -->
-    <rect x="0" y="0" width="96" height="112" rx="8" fill="#2563eb"/>
+    <!-- Main window frame -->
+    <rect x="0" y="0" width="104" height="116" rx="8" fill="white" stroke="#e2e8f0" stroke-width="2"/>
 
-    <!-- Toolbar background -->
-    <rect x="0" y="0" width="96" height="28" rx="8" fill="#1d4ed8"/>
-    <rect x="0" y="20" width="96" height="8" fill="#1d4ed8"/>
+    <!-- Chrome bar (top) -->
+    <rect x="0" y="0" width="104" height="32" rx="8" fill="#f1f5f9"/>
+    <rect x="0" y="24" width="104" height="8" fill="#f1f5f9"/>
 
     <!-- Traffic lights -->
-    <circle cx="14" cy="14" r="4.5" fill="#ef4444"/>
-    <circle cx="27" cy="14" r="4.5" fill="#f59e0b"/>
-    <circle cx="40" cy="14" r="4.5" fill="#22c55e"/>
+    <circle cx="14" cy="16" r="5" fill="#ef4444"/>
+    <circle cx="28" cy="16" r="5" fill="#f59e0b"/>
+    <circle cx="42" cy="16" r="5" fill="#22c55e"/>
 
     <!-- URL bar -->
-    <rect x="52" y="7" width="36" height="14" rx="4" fill="white" opacity="0.2"/>
+    <rect x="54" y="8" width="42" height="16" rx="8" fill="white" stroke="#cbd5e1" stroke-width="1.5"/>
+    <!-- Lock icon in URL bar -->
+    <rect x="59" y="12" width="5" height="5" rx="1" fill="#94a3b8"/>
+    <path d="M59.5 13.5 Q61.5 11 63.5 13.5" fill="none" stroke="#94a3b8" stroke-width="1.2"/>
+    <!-- Dots in URL bar -->
+    <circle cx="72" cy="16" r="1.5" fill="#94a3b8"/>
+    <circle cx="77" cy="16" r="1.5" fill="#94a3b8"/>
+    <circle cx="82" cy="16" r="1.5" fill="#94a3b8"/>
 
-    <!-- Page content lines (flat, abstract) -->
-    <rect x="10" y="36" width="76" height="6" rx="3" fill="white" opacity="0.3"/>
-    <rect x="10" y="48" width="60" height="6" rx="3" fill="white" opacity="0.2"/>
-    <rect x="10" y="60" width="68" height="6" rx="3" fill="white" opacity="0.2"/>
-    <rect x="10" y="76" width="76" height="20" rx="4" fill="white" opacity="0.15"/>
-    <rect x="10" y="102" width="40" height="6" rx="3" fill="white" opacity="0.15"/>
+    <!-- Page content area -->
+    <!-- Header bar simulation -->
+    <rect x="8" y="40" width="88" height="10" rx="3" fill="#2563eb" opacity="0.8"/>
+    <!-- Content lines -->
+    <rect x="8" y="58" width="88" height="6" rx="3" fill="#e2e8f0"/>
+    <rect x="8" y="69" width="70" height="6" rx="3" fill="#e2e8f0"/>
+    <rect x="8" y="80" width="80" height="6" rx="3" fill="#e2e8f0"/>
+    <!-- Image placeholder -->
+    <rect x="8" y="94" width="40" height="14" rx="3" fill="#dbeafe"/>
+    <!-- Button placeholder -->
+    <rect x="54" y="94" width="42" height="14" rx="3" fill="#2563eb" opacity="0.6"/>
 
   </g>
 
   <!-- Title -->
-  <text x="140" y="60" font-family="'Segoe UI', system-ui, sans-serif" font-size="46" font-weight="800" fill="#111827" letter-spacing="-1">Web</text>
-  <text x="212" y="60" font-family="'Segoe UI', system-ui, sans-serif" font-size="46" font-weight="800" fill="#2563eb" letter-spacing="-1"> MCP</text>
+  <text x="142" y="60" font-family="'Segoe UI', system-ui, sans-serif" font-size="46" font-weight="800" fill="#111827" letter-spacing="-1">Web</text>
+  <text x="214" y="60" font-family="'Segoe UI', system-ui, sans-serif" font-size="46" font-weight="800" fill="#2563eb" letter-spacing="-1"> MCP</text>
 
   <!-- Tagline -->
-  <text x="142" y="92" font-family="'Segoe UI', system-ui, sans-serif" font-size="15" fill="#6b7280" letter-spacing="0.1">Search, fetch and download from the web. Right from your AI.</text>
+  <text x="144" y="92" font-family="'Segoe UI', system-ui, sans-serif" font-size="15" fill="#6b7280" letter-spacing="0.1">Search, fetch and download from the web. Right from your AI.</text>
 
 </svg>
