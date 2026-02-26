@@ -37,7 +37,7 @@ docker run -v $(pwd)/config.yaml:/config/config.yaml browse-mcp
 ## Key Technologies
 
 | Component | Library | Purpose |
-|-----------|---------|---------|
+|-----------|---------|---------| 
 | Language | Go 1.24+ | Core runtime |
 | MCP Library | `github.com/mark3labs/mcp-go` v0.44.0 | Model Context Protocol server |
 | HTML parsing | `github.com/PuerkitoBio/goquery` | DOM manipulation |
@@ -146,7 +146,7 @@ type HttpMiddleware interface {
 
 **web_download**:
 - `url` (required): Must start with `http://` or `https://`
-- `file_path` (required): Local path to save file
+- `file_path` (required): Local path to save file. If `download_dir` is configured, this is relative to it and must stay inside it.
 - `timeout` (optional): Seconds, default 120, max 600
 
 ### Content Handling
@@ -155,6 +155,10 @@ type HttpMiddleware interface {
 - **Conversion**: HTML → Markdown first (via `html-to-markdown`), falls back to plain text extraction
 - **Large content**: Content >50KB saved to temp file, path returned with first 2000 chars preview
 - **Max fetch size**: 5MB (`MaxFetchSize` in `internal/web/fetch.go`)
+
+### Dynamic tool descriptions
+
+`web_download`'s tool description and `file_path` parameter description are built dynamically at startup in `AddTools()` based on whether `DownloadDir` is set. When configured, the AI is told exactly where it must save files and that paths outside that directory are rejected. If `DownloadDir` is empty, the description is generic.
 
 ## Security Model
 
@@ -183,6 +187,14 @@ type HttpMiddleware interface {
   - Exact: `"docs.k8s.io"`
   - Wildcard subdomains: `"*.github.com"`
   - Allow all: `"*"`
+
+### Download Directory (`web.download_dir`)
+
+- Restricts `web_download` to a specific directory on disk
+- `file_path` values are resolved relative to `download_dir`
+- Path traversal attempts (`../../etc/passwd`) are rejected at the handler level
+- When set, the tool description exposed to the AI is updated automatically to include the configured path
+- If empty, any absolute path is accepted
 
 ### OAuth Metadata Endpoints
 
@@ -221,23 +233,15 @@ All config types are documented in `api/config_types.go`. Key sections:
 - `policies`: Tool and web access control
 - `oauth_authorization_server`: Discovery endpoint config
 - `oauth_protected_resource`: Protected resource metadata
-- `web`: Default provider, provider API keys
+- `web`: Default provider, download_dir, provider API keys
 
 ## Adding New Functionality
 
 ### Adding a New Search Provider
 
-1. Add config struct in `api/config_types.go`:
-   ```go
-   type NewProviderConfig struct {
-       APIKey string `yaml:"api_key"`
-   }
-   ```
+1. Add config struct in `api/config_types.go`
 2. Add to `ProvidersConfig` struct
-3. Add provider constant in `internal/web/search.go`:
-   ```go
-   const ProviderNew = "newprovider"
-   ```
+3. Add provider constant in `internal/web/search.go`
 4. Implement search function: `searchNewProvider(ctx, client, query, maxResults, apiKey)`
 5. Add case in `Search()` switch
 6. Add API key field to `ToolsManagerDependencies` in `internal/tools/tools.go`
@@ -282,22 +286,13 @@ All config types are documented in `api/config_types.go`. Key sections:
 | Tool access denied | Tool not in any matching policy's allowed_tools | Add tool to policy or use wildcard |
 | Domain not allowed | Domain not in any matching web policy | Add domain to allowed_domains |
 | JWKS fetch error | Invalid jwks_uri or network issue | Check jwks_uri, ensure server can reach it |
+| file_path rejected | Path escapes download_dir | Use a relative path that stays inside download_dir |
 
 ## Code Conventions
 
 ### Comments
 
-All public structs and functions must have a comment explaining what they do. Example from codebase:
-
-```go
-// JWTValidationMiddleware validates incoming JWTs against a JWKS endpoint.
-//
-// When enabled:
-//   - Reads the token from the Authorization: Bearer header
-//   - Validates signature using JWKS (fetched and cached from jwks_uri)
-//   ...
-type JWTValidationMiddleware struct { ... }
-```
+All public structs and functions must have a comment explaining what they do.
 
 ### Error Handling
 
