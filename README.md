@@ -63,11 +63,8 @@ middleware:
     redacted_headers: ["Authorization"]
   jwt:
     enabled: true
-    validation:
-      strategy: "local"
-      local:
-        jwks_uri: "https://your-idp.com/.well-known/jwks.json"
-        cache_interval: 5m
+    jwks_uri: "https://your-idp.com/.well-known/jwks.json"
+    cache_interval: 5m
 
 web:
   default_provider: "tavily"
@@ -156,12 +153,10 @@ Validates incoming JWTs against a JWKS endpoint. The JWKS is fetched from `jwks_
 middleware:
   jwt:
     enabled: true
-    validation:
-      local:
-        jwks_uri: "https://your-idp.com/.well-known/jwks.json"
-        cache_interval: 5m
-        allow_conditions:
-          - expression: 'payload.iss == "https://your-idp.com"'
+    jwks_uri: "https://your-idp.com/.well-known/jwks.json"
+    cache_interval: 5m
+    allow_conditions:
+      - expression: 'payload.iss == "https://your-idp.com"'
 ```
 
 ### Access logs

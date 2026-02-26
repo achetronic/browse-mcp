@@ -80,7 +80,7 @@ func NewJWTValidationMiddleware(deps JWTValidationMiddlewareDependencies) (*JWTV
 		return nil, fmt.Errorf("CEL environment creation error: %s", err.Error())
 	}
 
-	for _, allowCondition := range mw.dependencies.AppCtx.Config.Middleware.JWT.Validation.Local.AllowConditions {
+	for _, allowCondition := range mw.dependencies.AppCtx.Config.Middleware.JWT.AllowConditions {
 		ast, issues := allowConditionsEnv.Compile(allowCondition.Expression)
 		if issues != nil && issues.Err() != nil {
 			return nil, fmt.Errorf("CEL expression compilation error for '%s': %s", allowCondition.Expression, issues.Err())

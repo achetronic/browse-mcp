@@ -12,12 +12,10 @@ middleware:
     redacted_headers: ["Authorization"]
   jwt:
     enabled: true
-    validation:
-      local:
-        jwks_uri: "https://your-idp.com/.well-known/jwks.json"
-        cache_interval: 5m
-        allow_conditions:
-          - expression: 'payload.iss == "https://your-idp.com"'
+    jwks_uri: "https://your-idp.com/.well-known/jwks.json"
+    cache_interval: 5m
+    allow_conditions:
+      - expression: 'payload.iss == "https://your-idp.com"'
 
 policies:
   tools:

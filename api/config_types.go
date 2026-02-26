@@ -43,33 +43,24 @@ type AccessLogsConfig struct {
 	RedactedHeaders []string `yaml:"redacted_headers"`
 }
 
-// JWTValidationLocalConfig holds the configuration for local JWT validation.
-// The middleware fetches and caches the JWKS from JWKSUri and validates
-// incoming tokens against it. AllowConditions are CEL expressions evaluated
-// against the JWT payload — all must return true for the request to pass.
-type JWTValidationLocalConfig struct {
-	JWKSUri         string                       `yaml:"jwks_uri"`
-	CacheInterval   time.Duration                `yaml:"cache_interval"`
-	AllowConditions []JWTValidationAllowCondition `yaml:"allow_conditions,omitempty"`
-}
-
-// JWTValidationAllowCondition is a CEL expression evaluated against the JWT payload.
+// JWTAllowCondition is a CEL expression evaluated against the JWT payload.
+// All conditions must return true for the request to pass.
 // Example: 'payload.iss == "https://my-idp.com"'
-type JWTValidationAllowCondition struct {
+type JWTAllowCondition struct {
 	Expression string `yaml:"expression"`
 }
 
-// JWTValidationConfig holds JWT validation settings.
-// AllowConditions are checked first (coarse-grained), then tool and web
-// policies apply fine-grained per-tool and per-URL restrictions.
-type JWTValidationConfig struct {
-	Local JWTValidationLocalConfig `yaml:"local,omitempty"`
-}
-
-// JWTConfig enables or disables JWT validation for the HTTP transport.
+// JWTConfig enables JWT validation for the HTTP transport.
+// Tokens are always read from the Authorization: Bearer header and validated
+// against the JWKS fetched from jwks_uri.
+//
+// allow_conditions are coarse-grained CEL checks (e.g. verify issuer/audience).
+// Fine-grained per-tool and per-URL restrictions live under policies.
 type JWTConfig struct {
-	Enabled    bool                `yaml:"enabled"`
-	Validation JWTValidationConfig `yaml:"validation,omitempty"`
+	Enabled         bool               `yaml:"enabled"`
+	JWKSUri         string             `yaml:"jwks_uri,omitempty"`
+	CacheInterval   time.Duration      `yaml:"cache_interval,omitempty"`
+	AllowConditions []JWTAllowCondition `yaml:"allow_conditions,omitempty"`
 }
 
 // MiddlewareConfig groups all HTTP middleware configuration.
