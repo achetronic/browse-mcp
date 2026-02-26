@@ -57,7 +57,7 @@ func main() {
 		McpServer:       mcpServer,
 		HTTPClient:      httpClient,
 		DefaultProvider: defaultProvider,
-		BraveAPIKey:     appCtx.Config.Web.Providers.Brave.APIKey,
+		
 		TavilyAPIKey:    appCtx.Config.Web.Providers.Tavily.APIKey,
 		SerperAPIKey:    appCtx.Config.Web.Providers.Serper.APIKey,
 	})

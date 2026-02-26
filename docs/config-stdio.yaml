@@ -7,8 +7,6 @@ server:
 web:
   default_provider: "duckduckgo"
   providers:
-    brave:
-      api_key: "$BRAVE_API_KEY"
     tavily:
       api_key: "$TAVILY_API_KEY"
     serper:

@@ -45,7 +45,6 @@ func (tm *ToolsManager) HandleToolWebSearch(ctx context.Context, request mcp.Cal
 	}
 
 	cfg := web.SearchConfig{
-		BraveAPIKey:  tm.dependencies.BraveAPIKey,
 		TavilyAPIKey: tm.dependencies.TavilyAPIKey,
 		SerperAPIKey: tm.dependencies.SerperAPIKey,
 	}

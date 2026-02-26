@@ -40,23 +40,17 @@ type HTTPConfig struct {
 
 // WebConfig holds web search/fetch configuration
 type WebConfig struct {
-	// DefaultProvider sets the default search provider (duckduckgo, brave, tavily, serper)
-	DefaultProvider string            `yaml:"default_provider,omitempty"`
-	Providers       ProvidersConfig   `yaml:"providers,omitempty"`
+	DefaultProvider string        `yaml:"default_provider,omitempty"`
+	Providers       ProvidersConfig `yaml:"providers,omitempty"`
 }
 
 // ProvidersConfig holds API keys for each search provider
 type ProvidersConfig struct {
-	Brave  BraveConfig  `yaml:"brave,omitempty"`
 	Tavily TavilyConfig `yaml:"tavily,omitempty"`
 	Serper SerperConfig `yaml:"serper,omitempty"`
 }
 
-// BraveConfig holds Brave Search API configuration
-type BraveConfig struct {
-	APIKey string `yaml:"api_key"`
-}
-
+// BraveConfig removed — requires credit card even for free tier
 // TavilyConfig holds Tavily API configuration
 type TavilyConfig struct {
 	APIKey string `yaml:"api_key"`

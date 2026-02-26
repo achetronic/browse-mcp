@@ -7,10 +7,8 @@ server:
       host: ":8080"
 
 web:
-  default_provider: "brave"
+  default_provider: "tavily"
   providers:
-    brave:
-      api_key: "$BRAVE_API_KEY"
     tavily:
       api_key: "$TAVILY_API_KEY"
     serper:

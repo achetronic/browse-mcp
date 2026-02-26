@@ -28,7 +28,6 @@ type ToolsManagerDependencies struct {
 	McpServer       *server.MCPServer
 	HTTPClient      *http.Client
 	DefaultProvider string
-	BraveAPIKey     string
 	TavilyAPIKey    string
 	SerperAPIKey    string
 }

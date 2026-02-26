@@ -30,7 +30,7 @@ import (
 
 const (
 	ProviderDuckDuckGo = "duckduckgo"
-	ProviderBrave      = "brave"
+	
 	ProviderTavily     = "tavily"
 	ProviderSerper     = "serper"
 )
@@ -44,7 +44,7 @@ type SearchResult struct {
 
 // SearchConfig holds provider configuration
 type SearchConfig struct {
-	BraveAPIKey  string
+	
 	TavilyAPIKey string
 	SerperAPIKey string
 }
@@ -59,11 +59,6 @@ func Search(ctx context.Context, client *http.Client, query, provider string, ma
 	}
 
 	switch provider {
-	case ProviderBrave:
-		if cfg.BraveAPIKey == "" {
-			return nil, fmt.Errorf("brave API key not configured (set web.providers.brave.api_key)")
-		}
-		return searchBrave(ctx, client, query, maxResults, cfg.BraveAPIKey)
 	case ProviderTavily:
 		if cfg.TavilyAPIKey == "" {
 			return nil, fmt.Errorf("tavily API key not configured (set web.providers.tavily.api_key)")
@@ -121,52 +116,6 @@ func searchDuckDuckGo(ctx context.Context, client *http.Client, query string, ma
 		}
 	})
 
-	return results, nil
-}
-
-// searchBrave searches using Brave Search API
-func searchBrave(ctx context.Context, client *http.Client, query string, maxResults int, apiKey string) ([]SearchResult, error) {
-	searchURL := fmt.Sprintf("https://api.search.brave.com/res/v1/web/search?q=%s&count=%d", url.QueryEscape(query), maxResults)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, searchURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("X-Subscription-Token", apiKey)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-
-	var data struct {
-		Web struct {
-			Results []struct {
-				Title       string `json:"title"`
-				URL         string `json:"url"`
-				Description string `json:"description"`
-			} `json:"results"`
-		} `json:"web"`
-	}
-	if err := json.Unmarshal(body, &data); err != nil {
-		return nil, fmt.Errorf("failed to parse response: %w", err)
-	}
-
-	var results []SearchResult
-	for _, r := range data.Web.Results {
-		results = append(results, SearchResult{
-			Title:   r.Title,
-			URL:     r.URL,
-			Snippet: r.Description,
-		})
-	}
 	return results, nil
 }
 
