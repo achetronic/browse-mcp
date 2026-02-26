@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"browse-mcp/internal/globals"
+	"browse-mcp/internal/handlers"
 	"browse-mcp/internal/middlewares"
 	"browse-mcp/internal/tools"
 	"browse-mcp/internal/web"
@@ -86,6 +87,11 @@ func main() {
 		server.WithToolCapabilities(true),
 	)
 
+	// 6. Initialize OAuth handlers
+	hm := handlers.NewHandlersManager(handlers.HandlersManagerDependencies{
+		AppCtx: appCtx,
+	})
+
 	// 6. Register tools
 	tm := tools.NewToolsManager(tools.ToolsManagerDependencies{
 		AppCtx:          appCtx,
@@ -107,6 +113,16 @@ func main() {
 
 		mux := http.NewServeMux()
 		mux.Handle("/mcp", accessLogsMw.Middleware(jwtValidationMw.Middleware(httpServer)))
+
+		if appCtx.Config.OAuthAuthorizationServer.Enabled {
+			mux.Handle("/.well-known/oauth-authorization-server"+appCtx.Config.OAuthAuthorizationServer.UrlSuffix,
+				accessLogsMw.Middleware(http.HandlerFunc(hm.HandleOauthAuthorizationServer)))
+		}
+
+		if appCtx.Config.OAuthProtectedResource.Enabled {
+			mux.Handle("/.well-known/oauth-protected-resource"+appCtx.Config.OAuthProtectedResource.UrlSuffix,
+				accessLogsMw.Middleware(http.HandlerFunc(hm.HandleOauthProtectedResources)))
+		}
 
 		httpSrv := &http.Server{
 			Addr:              appCtx.Config.Server.Transport.HTTP.Host,
