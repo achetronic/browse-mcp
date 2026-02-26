@@ -51,7 +51,7 @@
 
   <!-- Title -->
   <text x="152" y="60" font-family="'Segoe UI', system-ui, sans-serif" font-size="46" font-weight="800" fill="#111827" letter-spacing="-1">Browse</text>
-  <text x="268" y="60" font-family="'Segoe UI', system-ui, sans-serif" font-size="46" font-weight="800" fill="#2563eb" letter-spacing="-1"> MCP</text>
+  <text x="152" y="60" font-family="'Segoe UI', system-ui, sans-serif" font-size="46" font-weight="800" fill="#2563eb" letter-spacing="-1" dx="155"> MCP</text>
 
   <!-- Tagline -->
   <text x="154" y="92" font-family="'Segoe UI', system-ui, sans-serif" font-size="15" fill="#6b7280" letter-spacing="0.1">Search, fetch and download from the web. Right from your AI.</text>
