@@ -44,9 +44,7 @@
 
     <!-- URL bar -->
     <rect x="116" y="64" width="340" height="34" rx="17" fill="white" stroke="#cbd5e1" stroke-width="2"/>
-    <rect x="130" y="74" width="10" height="14" rx="2" fill="#64748b"/>
-    <path d="M130 78 Q136 70 142 78" fill="none" stroke="#64748b" stroke-width="2.5"/>
-    <rect x="148" y="79" width="180" height="7" rx="3" fill="#64748b" opacity="0.4"/>
+    <rect x="130" y="79" width="220" height="7" rx="3" fill="#64748b" opacity="0.4"/>
 
     <!-- Page content -->
     <rect x="40" y="138" width="400" height="14" rx="5" fill="#22d3ee" opacity="0.5"/>

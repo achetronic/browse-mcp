@@ -36,9 +36,7 @@
 
     <!-- URL bar -->
     <rect x="44" y="24" width="68" height="14" rx="7" fill="white" stroke="#cbd5e1" stroke-width="1.5"/>
-    <rect x="49" y="28" width="4" height="5" rx="1" fill="#64748b"/>
-    <path d="M49.5 29.5 Q51 27 52.5 29.5" fill="none" stroke="#64748b" stroke-width="1.2"/>
-    <rect x="56" y="30" width="44" height="3" rx="1.5" fill="#64748b" opacity="0.5"/>
+    <rect x="49" y="30" width="55" height="3" rx="1.5" fill="#64748b" opacity="0.5"/>
 
     <!-- Page content -->
     <rect x="16" y="52" width="88" height="4" rx="2" fill="#22d3ee" opacity="0.5"/>
