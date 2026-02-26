@@ -63,7 +63,7 @@ Three providers implemented and verified:
 
 - **DuckDuckGo** — default, no key needed, scrapes DDG HTML. May occasionally rate-limit.
 - **Tavily** — POST to `https://api.tavily.com/search`. Free tier: 1,000 credits/month. Best for AI use cases.
-- **Serper** — POST to `https://google.serper.dev/search`. Starter tier: $50 for 50k credits (~$1/1k queries), valid 6 months. Scrapes Google.
+- **Serper** — POST to `https://google.serper.dev/search`. Paid, credit-based. Scrapes Google.
 
 Brave was removed — free tier requires credit card.
 
