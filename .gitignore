@@ -1,0 +1,13 @@
+# Compiled binaries
+main
+*.exe
+bin/
+
+# IDE / AI agents
+.idea/
+.vscode/
+.cursor/
+.claude/
+.aider/
+.copilot/
+# Note: .agents/ is intentionally tracked

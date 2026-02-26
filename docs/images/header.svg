@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 140">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f0f7ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e8f4fd;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="globeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="140" rx="12" fill="url(#bg)"/>
+
+  <!-- Globe icon -->
+  <g transform="translate(72, 70)">
+    <!-- Outer circle -->
+    <circle cx="0" cy="0" r="46" fill="url(#globeGrad)"/>
+
+    <!-- Latitude lines -->
+    <ellipse cx="0" cy="0" rx="46" ry="18" fill="none" stroke="white" stroke-width="1.5" opacity="0.4"/>
+    <line x1="-46" y1="0" x2="46" y2="0" stroke="white" stroke-width="1.5" opacity="0.4"/>
+
+    <!-- Longitude lines -->
+    <ellipse cx="0" cy="0" rx="18" ry="46" fill="none" stroke="white" stroke-width="1.5" opacity="0.4"/>
+    <ellipse cx="0" cy="0" rx="36" ry="46" fill="none" stroke="white" stroke-width="1.5" opacity="0.25"/>
+
+    <!-- Outer ring -->
+    <circle cx="0" cy="0" r="46" fill="none" stroke="white" stroke-width="2" opacity="0.6"/>
+
+    <!-- Search magnifier -->
+    <circle cx="14" cy="-10" r="13" fill="none" stroke="white" stroke-width="3.5" opacity="0.95"/>
+    <line x1="23" y1="-1" x2="32" y2="8" stroke="white" stroke-width="3.5" stroke-linecap="round" opacity="0.95"/>
+  </g>
+
+  <!-- Title -->
+  <text x="148" y="62" font-family="'Segoe UI', system-ui, sans-serif" font-size="46" font-weight="800" fill="#1e3a5f" letter-spacing="-1">Web</text>
+  <text x="220" y="62" font-family="'Segoe UI', system-ui, sans-serif" font-size="46" font-weight="800" fill="#2563eb" letter-spacing="-1"> MCP</text>
+
+  <!-- Tagline -->
+  <text x="150" y="94" font-family="'Segoe UI', system-ui, sans-serif" font-size="15" fill="#4a7fa5" letter-spacing="0.2">Search, fetch and download from the web. Right from your AI.</text>
+
+  <!-- Subtle decoration -->
+  <circle cx="740" cy="25" r="70" fill="#2563eb" opacity="0.04"/>
+</svg>

@@ -1,0 +1,15 @@
+server:
+  name: "web-mcp"
+  version: "0.1.0"
+  transport:
+    type: "stdio"
+
+web:
+  default_provider: "duckduckgo"
+  providers:
+    brave:
+      api_key: "$BRAVE_API_KEY"
+    tavily:
+      api_key: "$TAVILY_API_KEY"
+    serper:
+      api_key: "$SERPER_API_KEY"
