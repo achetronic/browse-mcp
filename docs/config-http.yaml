@@ -13,7 +13,6 @@ middleware:
   jwt:
     enabled: true
     validation:
-      strategy: "local"
       forwarded_header: "X-Validated-JWT"
       local:
         jwks_uri: "https://your-idp.com/.well-known/jwks.json"

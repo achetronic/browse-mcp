@@ -148,17 +148,14 @@ When running in HTTP mode, Browse MCP supports a full security stack:
 
 ### JWT validation
 
-Validates incoming JWTs against a JWKS endpoint. Two strategies:
-
-- **`local`** — fetch and cache JWKS, validate signature and claims locally
-- **`forwarded`** — trust a pre-validated JWT from a header (e.g. Istio, Envoy)
+Validates incoming JWTs against a JWKS endpoint. The token is read from the `Authorization: Bearer` header by default, or from a custom header if you set `forwarded_header` (useful when a proxy like Istio or Envoy has already validated the token).
 
 ```yaml
 middleware:
   jwt:
     enabled: true
     validation:
-      strategy: "local"
+      forwarded_header: "X-Validated-JWT"  # optional, defaults to Authorization
       local:
         jwks_uri: "https://your-idp.com/.well-known/jwks.json"
         cache_interval: 5m
