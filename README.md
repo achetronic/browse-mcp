@@ -90,7 +90,7 @@ make build
 | Provider | API Key needed | Notes |
 |----------|---------------|-------|
 | `duckduckgo` | No | Default. Works out of the box. May occasionally rate-limit. |
-| `tavily` | Yes ([free tier](https://tavily.com)) | Built for AI. Returns extracted content alongside results. 1,000 credits/month free. |
+| `tavily` | Yes ([tavily.com](https://tavily.com)) | Built for AI. Returns extracted content alongside results. 1,000 credits/month free. |
 | `serper` | Yes ([serper.dev](https://serper.dev)) | Scrapes Google. Paid, credit-based. |
 
 You can switch provider per-request by passing `provider` to `web_search`, or set a default in config.
