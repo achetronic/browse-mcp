@@ -211,15 +211,6 @@ policies:
 
 ---
 
-## 🐳 Docker
-
-```bash
-docker build -t browse-mcp .
-docker run -v $(pwd)/config.yaml:/config/config.yaml browse-mcp
-```
-
----
-
 ## ⚠️ Limitations
 
 **Fetch size** — The fetcher reads up to 5MB per request. Pages larger than 50KB are saved to a temp file instead of returned inline. Use your filesystem tools to read them.
