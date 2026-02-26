@@ -207,23 +207,13 @@ docker run -v $(pwd)/config.yaml:/config/config.yaml browse-mcp
 
 ## ⚠️ Limitations
 
-- Max fetch size: 5MB
-- Only HTTP and HTTPS are supported
-- Pages with heavy JavaScript may not render correctly
-- DuckDuckGo may occasionally rate-limit; switch to Tavily for production
+**Fetch size** — The fetcher reads up to 5MB per request. Pages larger than 50KB are saved to a temp file instead of returned inline. Use your filesystem tools to read them.
 
----
+**JavaScript** — The fetcher doesn't run JS. Pages that render entirely client-side will return little or no content. For those, consider `web_download` to save the raw HTML and inspect it manually.
 
-## 🔧 Troubleshooting
+**DuckDuckGo** — Works without a key but may rate-limit under heavy use. Switch to Tavily for production workloads.
 
-### Empty search results
-DuckDuckGo is rate-limiting. Wait a moment or switch to Tavily.
-
-### web_fetch returns partial content
-Page is larger than 5MB. Use `web_download` to save it to disk, then read with filesystem tools.
-
-### Access denied on web_fetch
-Your JWT doesn't match any web policy, or the domain isn't in your allowed list. Check your policies config.
+**Protocols** — Only HTTP and HTTPS are supported. No FTP, no websockets.
 
 ---
 
