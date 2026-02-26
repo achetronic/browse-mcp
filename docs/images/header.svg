@@ -19,7 +19,7 @@
     <rect x="0" y="14" width="120" height="6" fill="#dee1e6"/>
 
     <!-- Active tab -->
-    <rect x="6" y="4" width="52" height="16" rx="4" fill="white"/>
+    <rect x="6" y="4" width="52" height="16" rx="4" fill="#f8fafc"/>
     <!-- Favicon dot in tab -->
     <circle cx="15" cy="12" r="4" fill="#2563eb" opacity="0.7"/>
     <!-- Tab title line -->
