@@ -12,7 +12,8 @@
   <a href="#-available-tools">Tools</a> •
   <a href="#-search-providers">Providers</a> •
   <a href="#-security-http-mode">Security</a> •
-  <a href="#-docker">Docker</a>
+  <a href="#%EF%B8%8F-limitations">Limitations</a> •
+  <a href="#-contributing">Contributing</a>
 </p>
 
 ---
