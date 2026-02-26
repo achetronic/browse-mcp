@@ -31,7 +31,7 @@
     <!-- Back / Forward / Reload buttons -->
     <text x="8" y="35" font-family="system-ui" font-size="13" fill="#64748b">‹</text>
     <text x="18" y="35" font-family="system-ui" font-size="13" fill="#64748b">›</text>
-    <text x="28" y="35" font-family="system-ui" font-size="13" fill="#64748b">↻</text>
+    <text x="28" y="34" font-family="system-ui" font-size="11" fill="#64748b">↻</text>
 
     <!-- URL bar -->
     <rect x="44" y="24" width="68" height="14" rx="7" fill="white" stroke="#cbd5e1" stroke-width="1.5"/>
