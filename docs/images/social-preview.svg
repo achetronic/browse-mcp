@@ -46,7 +46,7 @@
 
   <!-- Pills -->
   <rect x="662" y="470" width="190" height="36" rx="18" fill="#22d3ee" opacity="0.12"/>
-  <text x="757" y="494" font-family="'Segoe UI', system-ui, sans-serif" font-size="16" fill="#22d3ee" text-anchor="middle" font-weight="600">stdio + http</text>
+  <text x="757" y="494" font-family="'Segoe UI', system-ui, sans-serif" font-size="16" fill="#22d3ee" text-anchor="middle" font-weight="600">Stdio + HTTP</text>
 
   <rect x="872" y="470" width="160" height="36" rx="18" fill="#22d3ee" opacity="0.12"/>
   <text x="952" y="494" font-family="'Segoe UI', system-ui, sans-serif" font-size="16" fill="#22d3ee" text-anchor="middle" font-weight="600">No API key</text>
