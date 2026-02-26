@@ -9,7 +9,7 @@
   <rect width="800" height="140" rx="12" fill="url(#bg)"/>
 
   <!-- Browser window — white, floating -->
-  <g transform="translate(40, 10)">
+  <g transform="translate(60, 10)">
 
     <!-- Shadow -->
     <rect x="2" y="2" width="120" height="120" rx="6" fill="black" opacity="0.3"/>
@@ -49,11 +49,11 @@
   </g>
 
   <!-- Title -->
-  <text x="186" y="60" font-family="'Segoe UI', system-ui, sans-serif" font-size="42" font-weight="600" letter-spacing="1">
+  <text x="206" y="60" font-family="'Segoe UI', system-ui, sans-serif" font-size="42" font-weight="600" letter-spacing="1">
     <tspan fill="white">Browse</tspan><tspan fill="#22d3ee" dx="10">MCP</tspan>
   </text>
 
   <!-- Tagline -->
-  <text x="188" y="92" font-family="'Segoe UI', system-ui, sans-serif" font-size="15" fill="#475569" letter-spacing="0.1">Search, fetch and download from the web. Right from your AI.</text>
+  <text x="208" y="92" font-family="'Segoe UI', system-ui, sans-serif" font-size="15" fill="#94a3b8" letter-spacing="0.1">Search, fetch and download from the web. Right from your AI.</text>
 
 </svg>
