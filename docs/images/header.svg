@@ -1,57 +1,53 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 140">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#f0f4ff;stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1f3c;stop-opacity:1" />
     </linearGradient>
   </defs>
 
   <rect width="800" height="140" rx="12" fill="url(#bg)"/>
 
-  <!-- Browser window icon — Chrome style -->
+  <!-- Browser window icon -->
   <g transform="translate(40, 10)">
 
     <!-- Main window frame -->
-    <rect x="0" y="0" width="120" height="120" rx="6" fill="white" stroke="#e2e8f0" stroke-width="2"/>
+    <rect x="0" y="0" width="120" height="120" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
 
     <!-- Tab bar -->
-    <rect x="0" y="0" width="120" height="22" rx="6" fill="#dee1e6"/>
-    <rect x="0" y="16" width="120" height="6" fill="#dee1e6"/>
+    <rect x="0" y="0" width="120" height="22" rx="6" fill="#1e293b"/>
+    <rect x="0" y="16" width="120" height="6" fill="#1e293b"/>
 
-    <!-- Active tab — rounded top only, flush with toolbar -->
-    <path d="M6 22 L6 8 Q6 4 10 4 L58 4 Q62 4 62 8 L62 22 Z" fill="#f1f5f9"/>
-    <!-- Favicon dot in tab -->
-    <circle cx="15" cy="13" r="4" fill="#6366f1" opacity="0.7"/>
-    <!-- Tab title line -->
-    <rect x="23" y="10" width="28" height="5" rx="2" fill="#94a3b8"/>
+    <!-- Active tab -->
+    <path d="M6 22 L6 8 Q6 4 10 4 L58 4 Q62 4 62 8 L62 22 Z" fill="#0e7490"/>
+    <circle cx="15" cy="13" r="3.5" fill="#22d3ee" opacity="0.9"/>
+    <rect x="23" y="10" width="28" height="5" rx="2" fill="#475569"/>
 
     <!-- Toolbar -->
-    <rect x="0" y="20" width="120" height="22" fill="#f1f5f9"/>
+    <rect x="0" y="20" width="120" height="22" fill="#162032"/>
 
-    <!-- Back / Forward / Reload buttons -->
-    <text x="8" y="35" font-family="system-ui" font-size="13" fill="#64748b">‹</text>
-    <text x="18" y="35" font-family="system-ui" font-size="13" fill="#64748b">›</text>
-    <text x="28" y="35" font-family="system-ui" font-size="11" fill="#64748b">↻</text>
+    <!-- Nav buttons -->
+    <text x="8" y="35" font-family="system-ui" font-size="13" fill="#475569">‹</text>
+    <text x="18" y="35" font-family="system-ui" font-size="13" fill="#475569">›</text>
+    <text x="28" y="35" font-family="system-ui" font-size="11" fill="#475569">↻</text>
 
     <!-- URL bar -->
-    <rect x="44" y="24" width="68" height="14" rx="7" fill="white" stroke="#cbd5e1" stroke-width="1.5"/>
-    <!-- Lock -->
-    <rect x="49" y="28" width="4" height="5" rx="1" fill="#94a3b8"/>
-    <path d="M49.5 29.5 Q51 27 52.5 29.5" fill="none" stroke="#94a3b8" stroke-width="1.2"/>
-    <!-- URL text simulation -->
-    <rect x="56" y="30" width="44" height="3" rx="1.5" fill="#94a3b8" opacity="0.5"/>
+    <rect x="44" y="24" width="68" height="14" rx="7" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+    <rect x="49" y="28" width="4" height="5" rx="1" fill="#475569"/>
+    <path d="M49.5 29.5 Q51 27 52.5 29.5" fill="none" stroke="#475569" stroke-width="1.2"/>
+    <rect x="56" y="30" width="44" height="3" rx="1.5" fill="#22d3ee" opacity="0.3"/>
 
-    <!-- Page content area -->
-    <rect x="8" y="50" width="104" height="6" rx="3" fill="#6366f1" opacity="0.6"/>
-    <rect x="8" y="62" width="80" height="4" rx="2" fill="#e2e8f0"/>
-    <rect x="8" y="71" width="96" height="4" rx="2" fill="#e2e8f0"/>
-    <rect x="8" y="80" width="64" height="4" rx="2" fill="#e2e8f0"/>
+    <!-- Page content -->
+    <rect x="8" y="50" width="104" height="6" rx="3" fill="#06b6d4" opacity="0.8"/>
+    <rect x="8" y="62" width="80" height="4" rx="2" fill="#334155"/>
+    <rect x="8" y="71" width="96" height="4" rx="2" fill="#334155"/>
+    <rect x="8" y="80" width="64" height="4" rx="2" fill="#334155"/>
 
   </g>
 
   <!-- Title -->
   <text x="186" y="60" font-family="'Segoe UI', system-ui, sans-serif" font-size="42" font-weight="600" letter-spacing="1">
-    <tspan fill="#1e293b">Browse</tspan><tspan fill="#6366f1" dx="10">MCP</tspan>
+    <tspan fill="white">Browse</tspan><tspan fill="#22d3ee" dx="10">MCP</tspan>
   </text>
 
   <!-- Tagline -->
