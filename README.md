@@ -11,6 +11,7 @@
   <a href="#-getting-started">Getting Started</a> •
   <a href="#-available-tools">Tools</a> •
   <a href="#-search-providers">Providers</a> •
+  <a href="#-security-http-mode">Security</a> •
   <a href="#-docker">Docker</a>
 </p>
 
@@ -21,16 +22,15 @@
 This MCP gives your AI assistant real internet access:
 
 - **Search** the web using DuckDuckGo (no setup), Tavily or Serper (with API key)
-- **Fetch** any URL and get the content as clean readable text, with HTML noise stripped automatically
+- **Fetch** any URL and get the content as clean readable text
 - **Download** files from the web directly to disk
+- **Restrict** which URLs each user can access based on their JWT claims
 
 ---
 
 ## 🚀 Getting started
 
-### 1. Configure
-
-Create a `config.yaml`:
+### STDIO (local use, no auth)
 
 ```yaml
 server:
@@ -43,11 +43,34 @@ web:
   default_provider: "duckduckgo"
 ```
 
-That's it. No API key needed for basic usage. DuckDuckGo works out of the box.
+```bash
+go mod tidy
+make build
+./bin/browse-mcp -config config.yaml
+```
 
-To use a better provider, add your API key:
+### HTTP (production, with auth)
 
 ```yaml
+server:
+  name: "browse-mcp"
+  version: "0.1.0"
+  transport:
+    type: "http"
+    http:
+      host: ":8080"
+
+middleware:
+  access_logs:
+    redacted_headers: ["Authorization"]
+  jwt:
+    enabled: true
+    validation:
+      strategy: "local"
+      local:
+        jwks_uri: "https://your-idp.com/.well-known/jwks.json"
+        cache_interval: 5m
+
 web:
   default_provider: "tavily"
   providers:
@@ -55,15 +78,7 @@ web:
       api_key: "$TAVILY_API_KEY"
 ```
 
-See `docs/config-stdio.yaml` and `docs/config-http.yaml` for full examples.
-
-### 2. Build and run
-
-```bash
-go mod tidy
-make build
-./bin/browse-mcp -config config.yaml
-```
+See `docs/config-http.yaml` for the full example including policies.
 
 ---
 
@@ -71,8 +86,8 @@ make build
 
 | Tool | What it does |
 |------|--------------|
-| `web_search` | Search the web and get a list of results with title, URL and snippet |
-| `web_fetch` | Fetch a URL and return its content as clean text |
+| `web_search` | Search the web — returns title, URL and snippet per result |
+| `web_fetch` | Fetch a URL and return clean readable text (HTML noise removed) |
 | `web_download` | Download a file from a URL and save it to disk |
 
 ### Recommended flow
@@ -87,25 +102,97 @@ make build
 
 ## 🔍 Search providers
 
-| Provider | API Key needed | Notes |
-|----------|---------------|-------|
+| Provider | API Key | Notes |
+|----------|---------|-------|
 | `duckduckgo` | No | Default. Works out of the box. May occasionally rate-limit. |
-| `tavily` | Yes ([tavily.com](https://tavily.com)) | Built for AI. Returns extracted content alongside results. 1,000 credits/month free. |
+| `tavily` | Yes ([tavily.com](https://tavily.com)) | Built for AI. 1,000 credits/month free. |
 | `serper` | Yes ([serper.dev](https://serper.dev)) | Scrapes Google. Paid, credit-based. |
 
-You can switch provider per-request by passing `provider` to `web_search`, or set a default in config.
+Switch provider per-request by passing `provider` to `web_search`, or set a default in config.
 
 ---
 
 ## 🧹 How web_fetch cleans pages
 
-Before returning content, the fetcher:
+Before returning content, the fetcher strips scripts, styles, nav, headers, footers, iframes and SVGs, then converts HTML to plain text and collapses whitespace.
 
-1. Removes scripts, styles, nav, headers, footers, iframes and SVGs
-2. Converts the remaining HTML to plain text
-3. Collapses excessive whitespace
+For pages larger than 50KB the content is saved to a temp file — the path is returned so you can read it with filesystem tools.
 
-For pages larger than 50KB the content is saved to a temp file and the path is returned — use your filesystem tools to read it from there.
+---
+
+## 🔐 Security (HTTP mode)
+
+When running in HTTP mode, Browse MCP supports a full security stack:
+
+### JWT validation
+
+Validates incoming JWTs against a JWKS endpoint. Two strategies:
+
+- **`local`** — fetch and cache JWKS, validate signature and claims locally
+- **`forwarded`** — trust a pre-validated JWT from a header (e.g. Istio, Envoy)
+
+```yaml
+middleware:
+  jwt:
+    enabled: true
+    validation:
+      strategy: "local"
+      local:
+        jwks_uri: "https://your-idp.com/.well-known/jwks.json"
+        cache_interval: 5m
+        allow_conditions:
+          - expression: 'payload.iss == "https://your-idp.com"'
+```
+
+### Access logs
+
+Logs every request with method, URL, duration and headers. Sensitive headers can be redacted or excluded entirely.
+
+```yaml
+middleware:
+  access_logs:
+    excluded_headers: ["X-Internal-Token"]
+    redacted_headers: ["Authorization"]
+```
+
+### Tool policies
+
+Control which tools each group or claim can call. Uses CEL expressions evaluated against the JWT payload.
+
+```yaml
+policies:
+  tools:
+    - expression: 'payload.groups.exists(g, g == "admins")'
+      allowed_tools: ["*"]
+    - expression: 'payload.scope.contains("web:read")'
+      allowed_tools: ["web_search", "web_fetch"]
+```
+
+Supported patterns: exact match (`"web_fetch"`), wildcard (`"*"`), prefix (`"web_*"`).
+
+### URL policies
+
+Control which domains each group can access via `web_fetch` and `web_download`. CEL expression against JWT payload, domain allowlist with wildcard subdomain support.
+
+```yaml
+policies:
+  web:
+    - expression: 'payload.groups.exists(g, g == "admins")'
+      allowed_domains: ["*"]
+
+    - expression: 'payload.groups.exists(g, g == "developers")'
+      allowed_domains:
+        - "*.github.com"
+        - "docs.k8s.io"
+        - "pkg.go.dev"
+
+    - expression: 'payload.scope.contains("web:restricted")'
+      allowed_domains:
+        - "internal.company.com"
+        - "*.internal.company.com"
+```
+
+`web_search` is not URL-restricted by design — results are snippets, no content is fetched. Restriction applies at fetch/download time.
 
 ---
 
@@ -122,21 +209,21 @@ docker run -v $(pwd)/config.yaml:/config/config.yaml browse-mcp
 
 - Max fetch size: 5MB
 - Only HTTP and HTTPS are supported
-- Pages with heavy JavaScript may not render correctly — the fetcher doesn't run JS
-- DuckDuckGo may occasionally block requests; switch to Tavily or Serper for production use
+- Pages with heavy JavaScript may not render correctly
+- DuckDuckGo may occasionally rate-limit; switch to Tavily for production
 
 ---
 
 ## 🔧 Troubleshooting
 
 ### Empty search results
-DuckDuckGo is rate-limiting. Try again in a moment or switch to Tavily.
+DuckDuckGo is rate-limiting. Wait a moment or switch to Tavily.
 
 ### web_fetch returns partial content
-The page is larger than 5MB. Use `web_download` to save it to disk first, then read it with filesystem tools.
+Page is larger than 5MB. Use `web_download` to save it to disk, then read with filesystem tools.
 
-### API key error
-Make sure the environment variable is set and the config references it with `$VAR_NAME` syntax.
+### Access denied on web_fetch
+Your JWT doesn't match any web policy, or the domain isn't in your allowed list. Check your policies config.
 
 ---
 

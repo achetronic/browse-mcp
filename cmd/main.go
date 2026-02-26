@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"browse-mcp/internal/globals"
+	"browse-mcp/internal/middlewares"
 	"browse-mcp/internal/tools"
 	"browse-mcp/internal/web"
 
@@ -33,37 +34,71 @@ func main() {
 		log.Fatalf("failed creating application context: %v", err.Error())
 	}
 
-	// 1. Build HTTP client
-	httpClient := &http.Client{
-		Timeout: 30 * time.Second,
-	}
+	// 1. HTTP client
+	httpClient := &http.Client{Timeout: 30 * time.Second}
 
-	// 2. Resolve default provider and API keys from config
+	// 2. Default provider
 	defaultProvider := appCtx.Config.Web.DefaultProvider
 	if defaultProvider == "" {
 		defaultProvider = web.ProviderDuckDuckGo
 	}
 
-	// 3. Create MCP server
+	// 3. Initialize HTTP middlewares
+	accessLogsMw := middlewares.NewAccessLogsMiddleware(middlewares.AccessLogsMiddlewareDependencies{
+		AppCtx: appCtx,
+	})
+
+	jwtValidationMw, err := middlewares.NewJWTValidationMiddleware(middlewares.JWTValidationMiddlewareDependencies{
+		AppCtx: appCtx,
+	})
+	if err != nil {
+		appCtx.Logger.Info("failed starting JWT validation middleware", "error", err.Error())
+	}
+
+	// 4. Initialize tool middlewares
+	toolPolicyMw, err := middlewares.NewToolPolicyMiddleware(middlewares.ToolPolicyMiddlewareDependencies{
+		AppCtx: appCtx,
+	})
+	if err != nil {
+		appCtx.Logger.Info("failed starting tool policy middleware", "error", err.Error())
+	}
+
+	webPolicyMw, err := middlewares.NewWebPolicyMiddleware(middlewares.WebPolicyMiddlewareDependencies{
+		AppCtx: appCtx,
+	})
+	if err != nil {
+		appCtx.Logger.Info("failed starting web policy middleware", "error", err.Error())
+	}
+
+	// Collect tool middlewares
+	var toolMiddlewares []middlewares.ToolMiddleware
+	if toolPolicyMw != nil && len(appCtx.Config.Policies.Tools) > 0 {
+		toolMiddlewares = append(toolMiddlewares, toolPolicyMw)
+	}
+	if webPolicyMw != nil && len(appCtx.Config.Policies.Web) > 0 {
+		toolMiddlewares = append(toolMiddlewares, webPolicyMw)
+	}
+
+	// 5. Create MCP server
 	mcpServer := server.NewMCPServer(
 		appCtx.Config.Server.Name,
 		appCtx.Config.Server.Version,
 		server.WithToolCapabilities(true),
 	)
 
-	// 4. Register tools
+	// 6. Register tools
 	tm := tools.NewToolsManager(tools.ToolsManagerDependencies{
 		AppCtx:          appCtx,
 		McpServer:       mcpServer,
 		HTTPClient:      httpClient,
+		Middlewares:     toolMiddlewares,
 		DefaultProvider: defaultProvider,
-		
 		TavilyAPIKey:    appCtx.Config.Web.Providers.Tavily.APIKey,
 		SerperAPIKey:    appCtx.Config.Web.Providers.Serper.APIKey,
 	})
 	tm.AddTools()
 
-	// 5. Start transport
+	// 7. Start transport
 	switch appCtx.Config.Server.Transport.Type {
 	case "http":
 		httpServer := server.NewStreamableHTTPServer(mcpServer,
@@ -71,7 +106,7 @@ func main() {
 			server.WithStateLess(false))
 
 		mux := http.NewServeMux()
-		mux.Handle("/mcp", httpServer)
+		mux.Handle("/mcp", accessLogsMw.Middleware(jwtValidationMw.Middleware(httpServer)))
 
 		httpSrv := &http.Server{
 			Addr:              appCtx.Config.Server.Transport.HTTP.Host,

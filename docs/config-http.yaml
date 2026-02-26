@@ -6,6 +6,42 @@ server:
     http:
       host: ":8080"
 
+middleware:
+  access_logs:
+    excluded_headers: []
+    redacted_headers: ["Authorization"]
+  jwt:
+    enabled: true
+    validation:
+      strategy: "local"
+      forwarded_header: "X-Validated-JWT"
+      local:
+        jwks_uri: "https://your-idp.com/.well-known/jwks.json"
+        cache_interval: 5m
+        allow_conditions:
+          - expression: 'payload.iss == "https://your-idp.com"'
+
+policies:
+  tools:
+    - expression: 'payload.groups.exists(g, g == "admins")'
+      allowed_tools: ["*"]
+    - expression: 'payload.scope.contains("web:read")'
+      allowed_tools: ["web_search", "web_fetch"]
+
+  web:
+    - expression: 'payload.groups.exists(g, g == "admins")'
+      allowed_domains: ["*"]
+    - expression: 'payload.groups.exists(g, g == "developers")'
+      allowed_domains:
+        - "*.github.com"
+        - "docs.k8s.io"
+        - "pkg.go.dev"
+        - "stackoverflow.com"
+    - expression: 'payload.scope.contains("web:restricted")'
+      allowed_domains:
+        - "internal.company.com"
+        - "*.internal.company.com"
+
 web:
   default_provider: "tavily"
   providers:

@@ -17,6 +17,7 @@ package tools
 import (
 	"net/http"
 	"browse-mcp/internal/globals"
+	"browse-mcp/internal/middlewares"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -27,6 +28,7 @@ type ToolsManagerDependencies struct {
 	AppCtx          *globals.ApplicationContext
 	McpServer       *server.MCPServer
 	HTTPClient      *http.Client
+	Middlewares     []middlewares.ToolMiddleware
 	DefaultProvider string
 	TavilyAPIKey    string
 	SerperAPIKey    string
@@ -42,13 +44,21 @@ func NewToolsManager(deps ToolsManagerDependencies) *ToolsManager {
 	return &ToolsManager{dependencies: deps}
 }
 
+// wrapWithMiddlewares applies all configured middlewares to a tool handler
+func (tm *ToolsManager) wrapWithMiddlewares(handler server.ToolHandlerFunc) server.ToolHandlerFunc {
+	for i := len(tm.dependencies.Middlewares) - 1; i >= 0; i-- {
+		handler = tm.dependencies.Middlewares[i].Middleware(handler)
+	}
+	return handler
+}
+
 // AddTools registers all web tools into the MCP server
 func (tm *ToolsManager) AddTools() {
 
 	// web_search
 	tool := mcp.NewTool("web_search",
 		mcp.WithDescription(`Search the web and return a list of results with title, URL and snippet.
-Default provider is DuckDuckGo (no API key needed). Set provider to use Brave, Tavily or Serper if you have API keys configured.
+Default provider is DuckDuckGo (no API key needed). Set provider to use Tavily or Serper if you have API keys configured.
 Recommended flow: web_search to find relevant URLs, then web_fetch to read the full content of the most relevant ones.`),
 		mcp.WithString("query",
 			mcp.Required(),
@@ -58,10 +68,10 @@ Recommended flow: web_search to find relevant URLs, then web_fetch to read the f
 			mcp.Description("Maximum number of results to return (default: 10, max: 20)"),
 		),
 		mcp.WithString("provider",
-			mcp.Description("Search provider: duckduckgo (default, no key needed), brave, tavily, serper"),
+			mcp.Description("Search provider: duckduckgo (default, no key needed), tavily, serper"),
 		),
 	)
-	tm.dependencies.McpServer.AddTool(tool, tm.HandleToolWebSearch)
+	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolWebSearch))
 
 	// web_fetch
 	tool = mcp.NewTool("web_fetch",
@@ -77,7 +87,7 @@ Max response size: 5MB. Only HTTP and HTTPS are supported.`),
 			mcp.Description("Request timeout in seconds (default: 30, max: 120)"),
 		),
 	)
-	tm.dependencies.McpServer.AddTool(tool, tm.HandleToolWebFetch)
+	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolWebFetch))
 
 	// web_download
 	tool = mcp.NewTool("web_download",
@@ -96,5 +106,5 @@ Returns the number of bytes written and the final file path.`),
 			mcp.Description("Request timeout in seconds (default: 120, max: 600)"),
 		),
 	)
-	tm.dependencies.McpServer.AddTool(tool, tm.HandleToolWebDownload)
+	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolWebDownload))
 }
