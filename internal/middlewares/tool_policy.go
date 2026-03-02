@@ -47,11 +47,13 @@ type ToolPolicyMiddlewareDependencies struct {
 type ToolPolicyMiddleware struct {
 	dependencies     ToolPolicyMiddlewareDependencies
 	compiledPolicies []CompiledToolPolicy
+	toolPrefix       string
 }
 
 func NewToolPolicyMiddleware(deps ToolPolicyMiddlewareDependencies) (*ToolPolicyMiddleware, error) {
 	mw := &ToolPolicyMiddleware{
 		dependencies: deps,
+		toolPrefix:   deps.AppCtx.ToolPrefix,
 	}
 
 	// Create CEL environment for policy evaluation
@@ -100,7 +102,7 @@ func (mw *ToolPolicyMiddleware) Middleware(next server.ToolHandlerFunc) server.T
 			return mcp.NewToolResultError("Access denied: unable to verify permissions"), nil
 		}
 
-		toolName := request.Params.Name
+		toolName := strings.TrimPrefix(request.Params.Name, mw.toolPrefix)
 
 		// Check each policy - first matching policy wins
 		for _, policy := range mw.compiledPolicies {

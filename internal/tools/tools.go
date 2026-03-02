@@ -16,6 +16,7 @@ package tools
 
 import (
 	"net/http"
+
 	"browse-mcp/internal/globals"
 	"browse-mcp/internal/middlewares"
 
@@ -38,11 +39,19 @@ type ToolsManagerDependencies struct {
 // ToolsManager manages the MCP tools registration
 type ToolsManager struct {
 	dependencies ToolsManagerDependencies
+	toolPrefix   string
 }
 
 // NewToolsManager creates a new ToolsManager
 func NewToolsManager(deps ToolsManagerDependencies) *ToolsManager {
-	return &ToolsManager{dependencies: deps}
+	return &ToolsManager{
+		dependencies: deps,
+		toolPrefix:   deps.AppCtx.ToolPrefix,
+	}
+}
+
+func (tm *ToolsManager) toolName(base string) string {
+	return tm.toolPrefix + base
 }
 
 // wrapWithMiddlewares applies all configured middlewares to a tool handler
@@ -57,7 +66,7 @@ func (tm *ToolsManager) wrapWithMiddlewares(handler server.ToolHandlerFunc) serv
 func (tm *ToolsManager) AddTools() {
 
 	// web_search
-	tool := mcp.NewTool("web_search",
+	tool := mcp.NewTool(tm.toolName("web_search"),
 		mcp.WithDescription(`Search the web and return a list of results with title, URL and snippet.
 Default provider is DuckDuckGo (no API key needed). Set provider to use Tavily or Serper if you have API keys configured.
 Recommended flow: web_search to find relevant URLs, then web_fetch to read the full content of the most relevant ones.`),
@@ -75,7 +84,7 @@ Recommended flow: web_search to find relevant URLs, then web_fetch to read the f
 	tm.dependencies.McpServer.AddTool(tool, tm.wrapWithMiddlewares(tm.HandleToolWebSearch))
 
 	// web_fetch
-	tool = mcp.NewTool("web_fetch",
+	tool = mcp.NewTool(tm.toolName("web_fetch"),
 		mcp.WithDescription(`Fetch a URL and return its content as clean text.
 HTML is automatically stripped of noise (scripts, nav, ads) and converted to readable text.
 For large pages (>50KB) the content is saved to a temp file and the path is returned — use your filesystem tools to read it.
@@ -97,7 +106,7 @@ Max response size: 5MB. Only HTTP and HTTPS are supported.`),
 		webDownloadDesc += "\nIMPORTANT: All files must be saved inside " + tm.dependencies.DownloadDir + ". Any path outside this directory will be rejected."
 		webDownloadFilePathDesc = "Path where the file should be saved, relative to " + tm.dependencies.DownloadDir + " (e.g. file.pdf). Absolute paths and traversal (../) are not allowed."
 	}
-	tool = mcp.NewTool("web_download",
+	tool = mcp.NewTool(tm.toolName("web_download"),
 		mcp.WithDescription(webDownloadDesc),
 		mcp.WithString("url",
 			mcp.Required(),
